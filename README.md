@@ -32,6 +32,8 @@ pnpm dev
 
 Abre [http://localhost:3000](http://localhost:3000) en el navegador.
 
+Si `pnpm` no está instalado, ejecuta primero `npm install -g pnpm`.
+
 ## Comandos
 
 ```bash
