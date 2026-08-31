@@ -16,6 +16,8 @@ Esta primera versión contiene un dashboard interactivo con datos demostrativos:
 
 Todavía no consume información real de SECOP.
 
+Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entregables y criterios de aceptación del MVP.
+
 ## Requisitos
 
 - Node.js 22.13 o superior
