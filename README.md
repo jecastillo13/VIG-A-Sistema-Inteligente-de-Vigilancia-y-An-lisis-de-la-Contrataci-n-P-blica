@@ -21,7 +21,7 @@ Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entr
 ## Requisitos
 
 - Node.js 22.13 o superior
-- pnpm 10 o superior
+- pnpm 11
 
 ## Ejecutar localmente
 
@@ -36,6 +36,12 @@ Abre [http://localhost:3000](http://localhost:3000) en el navegador.
 
 Si `pnpm` no está instalado, ejecuta primero `npm install -g pnpm`.
 
+Para preparar las variables locales:
+
+```bash
+cp .env.example .env.local
+```
+
 ## Comandos
 
 ```bash
@@ -43,6 +49,7 @@ pnpm dev      # inicia el entorno local
 pnpm build    # genera una compilación de producción
 pnpm lint     # revisa el código
 pnpm format   # aplica el formato del proyecto
+pnpm check    # ejecuta revisión y compilación
 ```
 
 ## Próximos pasos sugeridos
@@ -56,3 +63,5 @@ pnpm format   # aplica el formato del proyecto
 ## Colaboración
 
 Las contribuciones pueden proponerse mediante *issues* y *pull requests*. Evita incluir datos personales, secretos, credenciales o afirmaciones no verificadas sobre personas o entidades.
+
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir un pull request. La arquitectura y las decisiones iniciales están documentadas en [`docs/`](docs/architecture.md).

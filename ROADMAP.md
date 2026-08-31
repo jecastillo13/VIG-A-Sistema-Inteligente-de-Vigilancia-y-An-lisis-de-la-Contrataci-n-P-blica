@@ -28,6 +28,8 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 0 — Fundamentos del proyecto
 
+**Estado:** completada el 31 de agosto de 2026
+
 **Duración estimada:** 1 semana
 
 ### Entregables
@@ -234,4 +236,3 @@ Una funcionalidad se considera terminada cuando:
 3. Definir si PostgreSQL correrá mediante Docker en desarrollo.
 4. Acordar los pesos iniciales de los indicadores o mantenerlos iguales durante la primera validación.
 5. Identificar dos o tres usuarios que puedan revisar la utilidad del ranking.
-
