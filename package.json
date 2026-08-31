@@ -11,7 +11,10 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
-    "check": "pnpm lint && pnpm build",
+    "test": "node --test scripts/secop/client.test.mjs scripts/secop/normalize.test.mjs",
+    "check": "pnpm lint && pnpm test && pnpm build",
+    "secop:ingest": "node scripts/secop/ingest-contracts.mjs",
+    "secop:entities": "node scripts/secop/resolve-entities.mjs",
     "format": "oxfmt"
   },
   "dependencies": {

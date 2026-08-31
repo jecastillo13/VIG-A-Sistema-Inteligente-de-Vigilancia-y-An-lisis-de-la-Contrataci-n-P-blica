@@ -50,7 +50,18 @@ pnpm build    # genera una compilación de producción
 pnpm lint     # revisa el código
 pnpm format   # aplica el formato del proyecto
 pnpm check    # ejecuta revisión y compilación
+pnpm test     # ejecuta las pruebas automatizadas
 ```
+
+## Primera ingesta SECOP II
+
+Para descargar una muestra local de contratos reales de INVÍAS firmados en 2025:
+
+```bash
+pnpm secop:ingest -- --year=2025 --entity=invias --limit=100
+```
+
+Consulta la [documentación de ingesta](docs/ingestion.md) para conocer la reanudación, los archivos generados y las opciones disponibles.
 
 ## Próximos pasos sugeridos
 

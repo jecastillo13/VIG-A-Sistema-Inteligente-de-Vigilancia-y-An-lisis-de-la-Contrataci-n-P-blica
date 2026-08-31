@@ -51,6 +51,8 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 1 — Ingesta de SECOP II
 
+**Estado:** completada el 31 de agosto de 2026
+
 **Duración estimada:** 2 semanas
 
 ### Entregables
