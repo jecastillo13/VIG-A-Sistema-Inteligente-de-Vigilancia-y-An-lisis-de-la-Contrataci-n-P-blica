@@ -24,8 +24,8 @@ Todavía no consume información real de SECOP.
 ## Ejecutar localmente
 
 ```bash
-git clone URL_DEL_REPOSITORIO
-cd NOMBRE_DEL_REPOSITORIO
+git clone https://github.com/jecastillo13/VIG-A-Sistema-Inteligente-de-Vigilancia-y-An-lisis-de-la-Contrataci-n-P-blica.git
+cd VIG-A-Sistema-Inteligente-de-Vigilancia-y-An-lisis-de-la-Contrataci-n-P-blica
 pnpm install
 pnpm dev
 ```
