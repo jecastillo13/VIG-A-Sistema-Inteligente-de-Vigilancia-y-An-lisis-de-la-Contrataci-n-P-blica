@@ -186,6 +186,7 @@ export default function Home() {
   const [loadError, setLoadError] = useState('');
   const [backend, setBackend] = useState('');
   const [reviewingCategory, setReviewingCategory] = useState<string | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const filtered = useMemo(
     () =>
       contracts
@@ -258,6 +259,29 @@ export default function Home() {
         .length,
     [contracts],
   );
+  const documentQuality = useMemo(() => {
+    const findings = contracts.flatMap(
+      (contract) => contract.documentExplanation?.categories || [],
+    );
+    const confirmed = findings.filter(
+      (finding) => finding.reviewDecision === 'confirmed',
+    ).length;
+    const rejected = findings.filter(
+      (finding) => finding.reviewDecision === 'rejected',
+    ).length;
+    const reviewed = confirmed + rejected;
+    const pending = findings.length - reviewed;
+    return {
+      total: findings.length,
+      reviewed,
+      confirmed,
+      rejected,
+      pending,
+      found: findings.filter((finding) => finding.status === 'found').length,
+      notFound: findings.filter((finding) => finding.status === 'not_found').length,
+      progress: findings.length ? Math.round((reviewed / findings.length) * 100) : 0,
+    };
+  }, [contracts]);
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -393,6 +417,52 @@ export default function Home() {
     setNotice('Informe descargado con los contratos visibles.');
   }
 
+  function downloadDocumentQualityReport() {
+    const header =
+      'Contrato,Entidad,Categoría,Resultado automático,Decisión humana,Observación,Documento,Página,Fuente';
+    const rows = contracts.flatMap((contract) =>
+      (contract.documentExplanation?.categories || []).map((finding) =>
+        [
+          contract.id,
+          contract.entity,
+          finding.category,
+          finding.status === 'found' ? 'Encontrado' : 'No encontrado',
+          finding.reviewDecision === 'confirmed'
+            ? 'Confirmado'
+            : finding.reviewDecision === 'rejected'
+              ? 'Rechazado'
+              : 'Pendiente',
+          finding.reviewNote || '',
+          finding.documentId || '',
+          finding.pageNumber || '',
+          finding.sourceUrl || '',
+        ]
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(','),
+      ),
+    );
+    const summary = [
+      `Progreso,${documentQuality.progress}%`,
+      `Resultados revisados,${documentQuality.reviewed}`,
+      `Resultados pendientes,${documentQuality.pending}`,
+      `Confirmados,${documentQuality.confirmed}`,
+      `Rechazados,${documentQuality.rejected}`,
+      `Información encontrada,${documentQuality.found}`,
+      `Información no encontrada,${documentQuality.notFound}`,
+      '',
+    ];
+    const blob = new Blob([[...summary, header, ...rows].join('\n')], {
+      type: 'text/csv;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'vigia-calidad-piloto-documental.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice('Reporte de calidad documental descargado.');
+  }
+
   async function reviewCitation(
     category: DocumentFinding['category'],
     decision: 'confirmed' | 'rejected',
@@ -406,7 +476,11 @@ export default function Home() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category, decision }),
+          body: JSON.stringify({
+            category,
+            decision,
+            note: reviewNotes[`${selected.id}:${category}`]?.trim() || undefined,
+          }),
         },
       );
       if (!response.ok) throw new Error('No fue posible guardar la revisión.');
@@ -419,7 +493,12 @@ export default function Home() {
             ...contract.documentExplanation,
             categories: contract.documentExplanation.categories.map((finding) =>
               finding.category === category
-                ? { ...finding, reviewDecision: decision }
+                ? {
+                    ...finding,
+                    reviewDecision: decision,
+                    reviewNote:
+                      reviewNotes[`${selected.id}:${category}`]?.trim() || null,
+                  }
                 : finding,
             ),
           },
@@ -642,24 +721,58 @@ export default function Home() {
           </div>
 
           {analyzedDocumentCount > 0 && (
-            <section className="mt-4 flex flex-col gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-bold text-cyan-950">
-                  Piloto documental: {analyzedDocumentCount} contratos analizados
-                </p>
-                <p className="mt-1 text-xs text-cyan-800">
-                  {pendingDocumentCount} contrato(s) tienen citas pendientes de
-                  revisión humana.
-                </p>
+            <section className="mt-4 rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold text-cyan-950">
+                    Calidad del piloto documental
+                  </p>
+                  <p className="mt-1 text-xs text-cyan-800">
+                    {analyzedDocumentCount} contratos analizados ·{' '}
+                    {documentQuality.reviewed} de {documentQuality.total} resultados
+                    revisados por una persona.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={downloadDocumentQualityReport}
+                    className="rounded-xl border border-cyan-300 bg-white px-4 py-2 text-sm font-bold text-cyan-900"
+                  >
+                    Descargar reporte de calidad
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => showDocumentQueue('pending', true)}
+                    disabled={pendingDocumentCount === 0}
+                    className="rounded-xl bg-cyan-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  >
+                    Revisar citas pendientes
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => showDocumentQueue('pending', true)}
-                disabled={pendingDocumentCount === 0}
-                className="rounded-xl bg-cyan-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-              >
-                Revisar citas pendientes
-              </button>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+                <div
+                  className="h-full rounded-full bg-cyan-700 transition-[width]"
+                  style={{ width: `${documentQuality.progress}%` }}
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-5">
+                {[
+                  [`${documentQuality.progress}%`, 'Avance'],
+                  [String(documentQuality.pending), 'Pendientes'],
+                  [String(documentQuality.confirmed), 'Confirmados'],
+                  [String(documentQuality.rejected), 'Rechazados'],
+                  [String(documentQuality.notFound), 'No encontrados'],
+                ].map(([value, label]) => (
+                  <div key={label} className="rounded-xl bg-white px-3 py-2">
+                    <strong className="block text-sm text-cyan-950">{value}</strong>
+                    <span className="text-[10px] font-semibold text-cyan-700">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
@@ -1069,7 +1182,28 @@ export default function Home() {
                                   información no exista en SECOP.
                                 </p>
                               )}
-                              <div className="mt-3 flex gap-2 border-t border-cyan-200 pt-2">
+                              <label className="mt-3 block border-t border-cyan-200 pt-2 text-[11px] font-bold text-cyan-950">
+                                Observación del revisor (opcional)
+                                <textarea
+                                  maxLength={500}
+                                  rows={2}
+                                  value={
+                                    reviewNotes[
+                                      `${selected.id}:${finding.category}`
+                                    ] ?? finding.reviewNote ?? ''
+                                  }
+                                  onChange={(event) =>
+                                    setReviewNotes((current) => ({
+                                      ...current,
+                                      [`${selected.id}:${finding.category}`]:
+                                        event.target.value,
+                                    }))
+                                  }
+                                  placeholder="Explica brevemente por qué confirmas o rechazas el resultado"
+                                  className="mt-1 block w-full resize-y rounded-lg border border-cyan-200 bg-white p-2 font-normal text-slate-700 outline-none focus:ring-2 focus:ring-cyan-300"
+                                />
+                              </label>
+                              <div className="mt-2 flex gap-2">
                                 <button
                                   type="button"
                                   disabled={reviewingCategory === finding.category}
