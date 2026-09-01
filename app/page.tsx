@@ -138,6 +138,16 @@ function displaySize(value?: number | null) {
     : `${Math.max(1, Math.round(value / 1_000))} KB`;
 }
 
+function documentReviewStatus(contract: ContractRow) {
+  const categories = contract.documentExplanation?.categories;
+  if (!categories?.length) return 'unanalyzed';
+  if (categories.some((finding) => finding.reviewDecision === 'rejected'))
+    return 'rejected';
+  if (categories.every((finding) => finding.reviewDecision === 'confirmed'))
+    return 'reviewed';
+  return 'pending';
+}
+
 function RiskBadge({ value }: { value: number | null }) {
   if (value === null)
     return (
@@ -167,6 +177,7 @@ export default function Home() {
   const [detailOpen, setDetailOpen] = useState(true);
   const [navOpen, setNavOpen] = useState(false);
   const [riskFilter, setRiskFilter] = useState('all');
+  const [documentFilter, setDocumentFilter] = useState('all');
   const [method, setMethod] = useState('');
   const [sort, setSort] = useState('risk-desc');
   const [page, setPage] = useState(1);
@@ -185,6 +196,8 @@ export default function Home() {
           return (
             matchesQuery &&
             (!method || c.mode === method) &&
+            (documentFilter === 'all' ||
+              documentReviewStatus(c) === documentFilter) &&
             (riskFilter === 'all' ||
               (riskFilter === 'signaled' && c.risk !== null) ||
               (riskFilter === 'high' && (c.risk ?? 0) >= 50) ||
@@ -199,7 +212,7 @@ export default function Home() {
             return a.entity.localeCompare(b.entity, 'es');
           return Date.parse(b.rawDate) - Date.parse(a.rawDate);
         }),
-    [contracts, method, query, riskFilter, sort],
+    [contracts, documentFilter, method, query, riskFilter, sort],
   );
 
   const pageSize = 25;
@@ -231,6 +244,18 @@ export default function Home() {
   );
   const signaledCount = useMemo(
     () => contracts.filter((contract) => contract.risk !== null).length,
+    [contracts],
+  );
+  const analyzedDocumentCount = useMemo(
+    () =>
+      contracts.filter((contract) => documentReviewStatus(contract) !== 'unanalyzed')
+        .length,
+    [contracts],
+  );
+  const pendingDocumentCount = useMemo(
+    () =>
+      contracts.filter((contract) => documentReviewStatus(contract) === 'pending')
+        .length,
     [contracts],
   );
 
@@ -310,6 +335,28 @@ export default function Home() {
       setSelected(matches[0]);
       setDetailOpen(true);
     }
+  }
+
+  function showDocumentQueue(status = 'pending', resetOtherFilters = false) {
+    setQuery('');
+    setDocumentFilter(status);
+    setPage(1);
+    if (resetOtherFilters) {
+      setMethod('');
+      setRiskFilter('all');
+    }
+    const candidates = contracts.filter(
+      (contract) =>
+        (status === 'all' || documentReviewStatus(contract) === status) &&
+        (resetOtherFilters || !method || contract.mode === method) &&
+        (resetOtherFilters ||
+          riskFilter === 'all' ||
+          (riskFilter === 'signaled' && contract.risk !== null) ||
+          (riskFilter === 'high' && (contract.risk ?? 0) >= 50) ||
+          (riskFilter === 'priority' && (contract.risk ?? 0) >= 70)),
+    );
+    setSelected(candidates[0] || null);
+    setDetailOpen(candidates.length > 0);
   }
 
   function downloadReport() {
@@ -594,6 +641,28 @@ export default function Home() {
             ))}
           </div>
 
+          {analyzedDocumentCount > 0 && (
+            <section className="mt-4 flex flex-col gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-cyan-950">
+                  Piloto documental: {analyzedDocumentCount} contratos analizados
+                </p>
+                <p className="mt-1 text-xs text-cyan-800">
+                  {pendingDocumentCount} contrato(s) tienen citas pendientes de
+                  revisión humana.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => showDocumentQueue('pending', true)}
+                disabled={pendingDocumentCount === 0}
+                className="rounded-xl bg-cyan-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              >
+                Revisar citas pendientes
+              </button>
+            </section>
+          )}
+
           {loading && (
             <output className="mt-4 block rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
               Cargando contratos reales…
@@ -632,7 +701,7 @@ export default function Home() {
                     </label>
                   </div>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                   <label className="text-xs font-semibold text-slate-600">
                     Modalidad
                     <select
@@ -649,6 +718,20 @@ export default function Home() {
                           {item}
                         </option>
                       ))}
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold text-slate-600">
+                    Revisión documental
+                    <select
+                      value={documentFilter}
+                      onChange={(event) => showDocumentQueue(event.target.value)}
+                      className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal text-slate-800"
+                    >
+                      <option value="all">Todos</option>
+                      <option value="pending">Pendientes</option>
+                      <option value="reviewed">Confirmados</option>
+                      <option value="rejected">Con rechazos</option>
+                      <option value="unanalyzed">Sin analizar</option>
                     </select>
                   </label>
                   <label className="text-xs font-semibold text-slate-600">
@@ -722,6 +805,15 @@ export default function Home() {
                             <span className="mt-1 block text-xs text-slate-400">
                               Firmado: {c.updated}
                             </span>
+                            {documentReviewStatus(c) !== 'unanalyzed' && (
+                              <span className="mt-1 inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-800">
+                                {documentReviewStatus(c) === 'pending'
+                                  ? 'Citas pendientes'
+                                  : documentReviewStatus(c) === 'reviewed'
+                                    ? 'Citas confirmadas'
+                                    : 'Citas rechazadas'}
+                              </span>
+                            )}
                           </button>
                         </td>
                         <td className="px-4 py-4">

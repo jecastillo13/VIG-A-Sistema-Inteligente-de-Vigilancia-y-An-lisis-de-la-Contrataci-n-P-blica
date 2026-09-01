@@ -157,7 +157,7 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 5 — Documentos y explicación asistida
 
-**Estado:** En progreso; inventario oficial de 3.016 documentos, extracción y explicación documental v1.1; piloto técnico de cinco contratos completo y revisión humana habilitada desde la ficha contractual
+**Estado:** En progreso; inventario oficial, extracción y explicación documental v1.1; piloto técnico de cinco contratos con cola, filtros y revisión humana habilitados en el dashboard
 
 **Duración estimada:** 3 semanas
 
