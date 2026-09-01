@@ -157,6 +157,8 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 5 — Documentos y explicación asistida
 
+**Estado:** En progreso; inventario oficial de 3.016 documentos asociado a 98 contratos, consulta visible en la ficha contractual y descarga controlada validada con un PDF y evidencia SHA-256
+
 **Duración estimada:** 3 semanas
 
 ### Entregables

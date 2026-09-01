@@ -12,6 +12,7 @@ La versión local contiene un dashboard conectado a 100 contratos reales de INV�
 - ranking de contratos priorizados;
 - búsqueda por contrato, entidad o proveedor;
 - selección y explicación de señales de riesgo reproducibles;
+- inventario de documentos oficiales disponible en cada ficha contractual;
 - interfaz adaptable a computador y móvil.
 
 El motor v1.2.0 calcula los diez indicadores iniciales, conserva su evidencia y limitaciones, y suprime plantillas textuales repetitivas y errores extremos de escala para reducir ruido. Los resultados orientan revisión y no afirman corrupción.
@@ -34,6 +35,7 @@ pnpm db:up
 pnpm db:migrate
 pnpm db:import
 pnpm secop:processes
+pnpm secop:documents
 pnpm risk:calculate
 pnpm dev:all
 ```
@@ -60,7 +62,9 @@ pnpm check    # ejecuta revisión y compilación
 pnpm test     # ejecuta las pruebas automatizadas
 pnpm db:up    # inicia PostgreSQL local
 pnpm secop:processes # vincula métricas oficiales de procesos SECOP II
+pnpm secop:documents # inventaría metadatos de documentos oficiales
 pnpm risk:calculate # recalcula señales y evidencia de riesgo
+pnpm document:download -- --document-id=708763166 # descarga controlada de un documento
 ```
 
 ## Primera ingesta SECOP II
@@ -80,6 +84,16 @@ pnpm dev:all
 ```
 
 La [documentación de base de datos y API](docs/database-and-api.md) explica el modo JSON inmediato y la posterior activación de PostgreSQL con Docker.
+
+## Documentos oficiales
+
+El inventario documental se obtiene sin descargar masivamente los archivos. La ficha de cada contrato muestra los documentos oficiales más recientes y enlaza a la fuente SECOP. Para actualizarlo ejecuta:
+
+```bash
+pnpm secop:documents
+```
+
+Las descargas son individuales y aplican límites de tamaño, tipos permitidos, validación del origen, firma del archivo y huella SHA-256. Consulta [documentos SECOP](docs/documents.md) antes de descargar archivos.
 
 ## Próximos pasos sugeridos
 

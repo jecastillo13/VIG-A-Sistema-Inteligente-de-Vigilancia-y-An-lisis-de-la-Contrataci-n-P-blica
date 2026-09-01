@@ -35,6 +35,7 @@ export function getSecopConfig() {
     contractsDatasetId: process.env.SECOP_CONTRACTS_DATASET_ID || 'jbjy-vk9h',
     processesDatasetId: process.env.SECOP_PROCESSES_DATASET_ID || 'p6dx-8zbt',
     biddersDatasetId: process.env.SECOP_BIDDERS_DATASET_ID || 'hgi6-6wh3',
+    documentsDatasetId: process.env.SECOP_DOCUMENTS_DATASET_ID || 'dmgg-8hin',
     appToken: process.env.SOCRATA_APP_TOKEN || '',
   };
 }

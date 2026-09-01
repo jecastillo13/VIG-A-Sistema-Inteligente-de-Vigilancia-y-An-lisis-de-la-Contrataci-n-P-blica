@@ -34,6 +34,17 @@ type ContractRow = {
   description: string;
   riskSignals: RiskSignal[];
   process: ProcessMetrics | null;
+  documentCount: number;
+  documents: ContractDocument[];
+};
+
+type ContractDocument = {
+  id: string;
+  fileName: string;
+  extension?: string | null;
+  sizeBytes?: number | null;
+  uploadedAt?: string | null;
+  sourceUrl: string;
 };
 
 type ProcessMetrics = {
@@ -64,6 +75,8 @@ type ApiContract = {
   description?: string;
   riskSignals?: RiskSignal[];
   process?: ProcessMetrics;
+  documentCount?: number;
+  documents?: ContractDocument[];
   entity?: { name?: string; department?: string; city?: string };
   supplier?: { name?: string };
   source?: { processUrl?: string };
@@ -83,6 +96,13 @@ function displayDate(value?: string | null) {
         new Date(value),
       )
     : 'No disponible';
+}
+
+function displaySize(value?: number | null) {
+  if (value == null) return 'Tamaño no disponible';
+  return value >= 1_000_000
+    ? `${(value / 1_000_000).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(value / 1_000))} KB`;
 }
 
 function RiskBadge({ value }: { value: number | null }) {
@@ -223,6 +243,8 @@ export default function Home() {
             ? contract.riskSignals
             : [],
           process: contract.process || null,
+          documentCount: Number(contract.documentCount || 0),
+          documents: Array.isArray(contract.documents) ? contract.documents : [],
         }));
         setContracts(mapped);
         setSelected(mapped[0] || null);
@@ -238,7 +260,7 @@ export default function Home() {
 
   function downloadReport() {
     const header =
-      'Contrato,Entidad,Proveedor,Valor,Modalidad,Riesgo,Reglas,Evidencia,Proceso oficial,Fuente SECOP';
+      'Contrato,Entidad,Proveedor,Valor,Modalidad,Riesgo,Reglas,Evidencia,Proceso oficial,Documentos,Fuente SECOP';
     const rows = filtered.map((contract) =>
       [
         contract.id,
@@ -252,6 +274,7 @@ export default function Home() {
           .map((signal) => signal.evidence?.explanation || '')
           .join(' | '),
         contract.process?.id || '',
+        contract.documentCount,
         contract.sourceUrl || '',
       ]
         .map((value) => `"${String(value).replaceAll('"', '""')}"`)
@@ -752,6 +775,47 @@ export default function Home() {
                         No fue posible vincular este contrato con una fila del
                         conjunto oficial de procesos. No se completan métricas
                         por inferencia.
+                      </p>
+                    )}
+                  </section>
+                  <section className="mt-5 border-t border-slate-200 pt-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-bold">Documentos oficiales</h3>
+                      <span className="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-800">
+                        {selected.documentCount}
+                      </span>
+                    </div>
+                    {selected.documents.length > 0 ? (
+                      <ul className="mt-3 space-y-2">
+                        {selected.documents.map((document) => (
+                          <li key={document.id}>
+                            <a
+                              href={document.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block rounded-xl border border-slate-200 p-3 text-xs hover:border-blue-300 hover:bg-blue-50"
+                            >
+                              <strong className="block break-words text-[#174f8c]">
+                                {document.fileName}
+                              </strong>
+                              <span className="mt-1 block text-[11px] text-slate-500">
+                                {(document.extension || 'archivo').toUpperCase()} ·{' '}
+                                {displaySize(document.sizeBytes)} ·{' '}
+                                {displayDate(document.uploadedAt)}
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 rounded-xl bg-slate-100 p-3 text-xs text-slate-600">
+                        No hay documentos inventariados para este contrato.
+                      </p>
+                    )}
+                    {selected.documentCount > selected.documents.length && (
+                      <p className="mt-2 text-[11px] text-slate-500">
+                        Se muestran los {selected.documents.length} más recientes
+                        de {selected.documentCount} documentos inventariados.
                       </p>
                     )}
                   </section>
