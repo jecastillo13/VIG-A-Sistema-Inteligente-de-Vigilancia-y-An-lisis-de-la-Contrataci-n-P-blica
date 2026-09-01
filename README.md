@@ -6,15 +6,15 @@ Prototipo de una plataforma para analizar y priorizar factores de riesgo en la c
 
 ## Estado actual
 
-Esta primera versión contiene un dashboard interactivo con datos demostrativos:
+La versión local contiene un dashboard conectado a 100 contratos reales de INVÍAS publicados en SECOP II:
 
 - panorama nacional y métricas principales;
 - ranking de contratos priorizados;
 - búsqueda por contrato, entidad o proveedor;
-- selección y explicación del puntaje de riesgo;
+- selección y explicación de señales de riesgo reproducibles;
 - interfaz adaptable a computador y móvil.
 
-Todavía no consume información real de SECOP.
+El motor v1.0.0 calcula cuatro indicadores iniciales y conserva su evidencia y limitaciones. Los resultados orientan revisión y no afirman corrupción.
 
 Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entregables y criterios de aceptación del MVP.
 
@@ -22,6 +22,7 @@ Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entr
 
 - Node.js 22.13 o superior
 - pnpm 11
+- Docker Desktop con WSL 2
 
 ## Ejecutar localmente
 
@@ -29,7 +30,11 @@ Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entr
 git clone https://github.com/jecastillo13/VIG-A-Sistema-Inteligente-de-Vigilancia-y-An-lisis-de-la-Contrataci-n-P-blica.git
 cd VIG-A-Sistema-Inteligente-de-Vigilancia-y-An-lisis-de-la-Contrataci-n-P-blica
 pnpm install
-pnpm dev
+pnpm db:up
+pnpm db:migrate
+pnpm db:import
+pnpm risk:calculate
+pnpm dev:all
 ```
 
 Abre [http://localhost:3000](http://localhost:3000) en el navegador.
@@ -52,6 +57,8 @@ pnpm lint     # revisa el código
 pnpm format   # aplica el formato del proyecto
 pnpm check    # ejecuta revisión y compilación
 pnpm test     # ejecuta las pruebas automatizadas
+pnpm db:up    # inicia PostgreSQL local
+pnpm risk:calculate # recalcula señales y evidencia de riesgo
 ```
 
 ## Primera ingesta SECOP II
@@ -74,11 +81,11 @@ La [documentación de base de datos y API](docs/database-and-api.md) explica el 
 
 ## Próximos pasos sugeridos
 
-1. Conectar los conjuntos abiertos de SECOP II.
-2. Diseñar el esquema de procesos, contratos, entidades y proveedores.
-3. Implementar los primeros diez indicadores reproducibles.
+1. Incorporar los datos necesarios para los seis indicadores restantes.
+2. Ampliar la muestra a las ocho entidades piloto.
+3. Validar umbrales con perfiles de contratación comparables.
 4. Incorporar documentos y explicaciones con trazabilidad a la fuente.
-5. Agregar pruebas, control de acceso y configuración de alertas.
+5. Agregar control de acceso y configuración de alertas.
 
 ## Colaboración
 

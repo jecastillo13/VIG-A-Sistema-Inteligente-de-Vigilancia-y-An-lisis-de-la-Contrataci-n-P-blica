@@ -83,7 +83,8 @@ async function contractsFromPostgres(options, contractId = '') {
         e.name AS entity_name,COALESCE(s.name,'') AS supplier_name,
         json_build_object('code',e.code,'name',e.name,'department',e.department,'city',e.city) AS entity,
         json_build_object('code',s.code,'name',s.name) AS supplier,
-        COALESCE(SUM(rs.score),0)::float8 AS "riskScore",COALESCE(SUM(rs.score),0) AS risk_score
+        LEAST(COALESCE(SUM(rs.score),0),100)::float8 AS "riskScore",LEAST(COALESCE(SUM(rs.score),0),100) AS risk_score,
+        COALESCE(json_agg(json_build_object('code',rs.rule_code,'version',rs.rule_version,'score',rs.score::float8,'evidence',rs.evidence) ORDER BY rs.score DESC) FILTER (WHERE rs.id IS NOT NULL),'[]'::json) AS "riskSignals"
       FROM contracts c JOIN entities e ON e.code=c.entity_code LEFT JOIN suppliers s ON s.code=c.supplier_code LEFT JOIN risk_signals rs ON rs.contract_id=c.id
       WHERE ($1='' OR c.id=$1) AND ($2='' OR c.id ILIKE $3 OR e.name ILIKE $3 OR s.name ILIKE $3 OR c.description ILIKE $3)
         AND ($4='' OR e.name ILIKE $5) AND ($6='' OR s.name ILIKE $7) AND ($8='' OR c.procurement_method=$8)

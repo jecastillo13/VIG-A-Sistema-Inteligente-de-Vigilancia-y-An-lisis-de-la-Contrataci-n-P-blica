@@ -13,7 +13,7 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
-    "test": "node --test scripts/secop/client.test.mjs scripts/secop/normalize.test.mjs",
+    "test": "node --test scripts/secop/client.test.mjs scripts/secop/normalize.test.mjs scripts/risk/engine.test.mjs",
     "check": "pnpm lint && pnpm test && pnpm build",
     "secop:ingest": "node scripts/secop/ingest-contracts.mjs",
     "secop:entities": "node scripts/secop/resolve-entities.mjs",
@@ -21,6 +21,7 @@
     "db:down": "docker compose down",
     "db:migrate": "node scripts/database/migrate.mjs",
     "db:import": "node scripts/database/import-contracts.mjs",
+    "risk:calculate": "node scripts/risk/calculate.mjs",
     "format": "oxfmt"
   },
   "dependencies": {
