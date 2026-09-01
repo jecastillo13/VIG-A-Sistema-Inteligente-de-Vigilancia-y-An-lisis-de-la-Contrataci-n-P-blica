@@ -37,6 +37,7 @@ type ContractRow = {
   documentCount: number;
   documents: ContractDocument[];
   extractedDocuments: ExtractedDocument[];
+  documentExplanation: DocumentExplanation | null;
 };
 
 type ContractDocument = {
@@ -56,6 +57,23 @@ type ExtractedDocument = {
   textCharCount: number;
   extractedAt?: string | null;
   pages: { pageNumber: number; excerpt: string }[];
+};
+
+type DocumentFinding = {
+  category: 'need' | 'justification' | 'budget' | 'market';
+  status: 'found' | 'not_found';
+  documentId?: string | null;
+  fileName?: string | null;
+  sourceUrl?: string | null;
+  pageNumber?: number | null;
+  excerpt?: string | null;
+};
+
+type DocumentExplanation = {
+  status: 'analyzed';
+  analyzerVersion: string;
+  analyzedAt?: string | null;
+  categories: DocumentFinding[];
 };
 
 type ProcessMetrics = {
@@ -89,6 +107,7 @@ type ApiContract = {
   documentCount?: number;
   documents?: ContractDocument[];
   extractedDocuments?: ExtractedDocument[];
+  documentExplanation?: DocumentExplanation | null;
   entity?: { name?: string; department?: string; city?: string };
   supplier?: { name?: string };
   source?: { processUrl?: string };
@@ -260,6 +279,7 @@ export default function Home() {
           extractedDocuments: Array.isArray(contract.extractedDocuments)
             ? contract.extractedDocuments
             : [],
+          documentExplanation: contract.documentExplanation || null,
         }));
         setContracts(mapped);
         setSelected(mapped[0] || null);
@@ -831,6 +851,73 @@ export default function Home() {
                       <p className="mt-2 text-[11px] text-slate-500">
                         Se muestran los {selected.documents.length} más recientes
                         de {selected.documentCount} documentos inventariados.
+                      </p>
+                    )}
+                  </section>
+                  <section className="mt-5 border-t border-slate-200 pt-4">
+                    <h3 className="text-sm font-bold">Explícame este contrato</h3>
+                    <p className="mt-1 text-[11px] leading-4 text-slate-500">
+                      Lectura documental asistida y verificable. No determina
+                      irregularidades ni modifica el índice de riesgo.
+                    </p>
+                    {selected.documentExplanation ? (
+                      <div className="mt-3 space-y-2">
+                        {selected.documentExplanation.categories.map((finding) => {
+                          const labels = {
+                            need: 'Necesidad',
+                            justification: 'Justificación',
+                            budget: 'Presupuesto',
+                            market: 'Estudio de mercado',
+                          };
+                          return (
+                            <article
+                              key={finding.category}
+                              className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 text-xs"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <strong className="text-cyan-950">
+                                  {labels[finding.category]}
+                                </strong>
+                                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-cyan-800">
+                                  {finding.status === 'found'
+                                    ? 'Encontrado'
+                                    : 'No encontrado'}
+                                </span>
+                              </div>
+                              {finding.status === 'found' ? (
+                                <>
+                                  <p className="mt-2 whitespace-pre-line leading-5 text-slate-700">
+                                    {finding.excerpt}
+                                  </p>
+                                  <a
+                                    href={finding.sourceUrl || '#'}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-2 block font-bold text-cyan-800 underline underline-offset-2"
+                                  >
+                                    Documento {finding.documentId} · página{' '}
+                                    {finding.pageNumber}
+                                  </a>
+                                </>
+                              ) : (
+                                <p className="mt-2 leading-5 text-slate-600">
+                                  No se encontró un fragmento explícito en los
+                                  documentos analizados. Esto no prueba que la
+                                  información no exista en SECOP.
+                                </p>
+                              )}
+                            </article>
+                          );
+                        })}
+                        <p className="text-[10px] text-slate-500">
+                          Analizador documental v
+                          {selected.documentExplanation.analyzerVersion}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-3 rounded-xl bg-slate-100 p-3 text-xs leading-5 text-slate-600">
+                        Este contrato todavía no ha sido analizado. Este estado es
+                        distinto de “información no encontrada”.
                       </p>
                     )}
                   </section>

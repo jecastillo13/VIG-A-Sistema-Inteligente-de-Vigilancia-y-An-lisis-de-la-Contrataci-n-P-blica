@@ -43,8 +43,20 @@ Antes de leerlo, el comando recalcula la huella SHA-256 y exige que coincida con
 
 Un estado `no_text` indica que el lector no encontró caracteres en el PDF, por ejemplo porque sus páginas contienen imágenes escaneadas. No significa que el documento esté vacío; esos casos requerirán OCR en un hito posterior.
 
+## Explicación documental v1
+
+Para clasificar el texto extraído de un contrato:
+
+```bash
+pnpm document:analyze -- --contract-id=CO1.PCCNTR.7257661
+```
+
+El analizador v1 es determinista: busca vocabulario explícito de necesidad, justificación, presupuesto y estudio de mercado. Para cada categoría guarda el fragmento literal, documento y página que sustentan el resultado. Si no encuentra evidencia, registra `not_found`; si el comando no se ha ejecutado, la interfaz muestra “todavía no analizado”. Son estados deliberadamente distintos.
+
+Esta clasificación no infiere hechos ausentes, no afirma cumplimiento o incumplimiento y no modifica el índice objetivo de riesgo. Los enlaces permiten contrastar cada fragmento con el archivo oficial.
+
 ## Interfaz y limitaciones
 
 La ficha contractual muestra el total de documentos y los cinco más recientes, con enlace directo al archivo oficial. Que un contrato no tenga documentos inventariados significa que no se encontraron registros asociados en esta fuente y carga; no demuestra que el proceso carezca de documentos en otros módulos o fuentes.
 
-La extracción conserva el texto técnico, pero todavía no lo interpreta ni genera una explicación asistida. Los resúmenes y la revisión humana se incorporarán en los siguientes hitos y no modificarán el puntaje objetivo de riesgo.
+La explicación v1 localiza evidencia explícita, pero todavía no genera conclusiones semánticas ni sustituye una revisión humana. La evaluación de calidad con una muestra más amplia se incorporará en el siguiente hito.
