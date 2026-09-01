@@ -14,7 +14,7 @@ La versión local contiene un dashboard conectado a 100 contratos reales de INV�
 - selección y explicación de señales de riesgo reproducibles;
 - interfaz adaptable a computador y móvil.
 
-El motor v1.1.0 calcula siete indicadores, conserva su evidencia y limitaciones, y suprime plantillas textuales repetitivas para reducir ruido. Los resultados orientan revisión y no afirman corrupción.
+El motor v1.2.0 calcula los diez indicadores iniciales, conserva su evidencia y limitaciones, y suprime plantillas textuales repetitivas y errores extremos de escala para reducir ruido. Los resultados orientan revisión y no afirman corrupción.
 
 Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entregables y criterios de aceptación del MVP.
 
@@ -33,6 +33,7 @@ pnpm install
 pnpm db:up
 pnpm db:migrate
 pnpm db:import
+pnpm secop:processes
 pnpm risk:calculate
 pnpm dev:all
 ```
@@ -58,6 +59,7 @@ pnpm format   # aplica el formato del proyecto
 pnpm check    # ejecuta revisión y compilación
 pnpm test     # ejecuta las pruebas automatizadas
 pnpm db:up    # inicia PostgreSQL local
+pnpm secop:processes # vincula métricas oficiales de procesos SECOP II
 pnpm risk:calculate # recalcula señales y evidencia de riesgo
 ```
 
@@ -81,11 +83,10 @@ La [documentación de base de datos y API](docs/database-and-api.md) explica el 
 
 ## Próximos pasos sugeridos
 
-1. Incorporar los datos necesarios para los tres indicadores restantes.
-2. Ampliar la muestra a las ocho entidades piloto.
-3. Validar umbrales con perfiles de contratación comparables.
-4. Incorporar documentos y explicaciones con trazabilidad a la fuente.
-5. Agregar control de acceso y configuración de alertas.
+1. Ampliar la muestra a las ocho entidades piloto.
+2. Validar umbrales con perfiles de contratación comparables.
+3. Incorporar documentos y explicaciones con trazabilidad a la fuente.
+4. Agregar control de acceso y configuración de alertas.
 
 ## Colaboración
 

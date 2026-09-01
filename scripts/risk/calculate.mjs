@@ -9,8 +9,9 @@ await client.connect();
 
 try {
   const result = await client.query(`
-    SELECT id,entity_code AS "entityCode",supplier_code AS "supplierCode",procurement_method AS "procurementMethod",contract_type AS "contractType",main_category_code AS "mainCategoryCode",description,signed_at AS "signedAt",value::float8
-    FROM contracts ORDER BY id
+    SELECT c.id,c.entity_code AS "entityCode",c.supplier_code AS "supplierCode",c.procurement_method AS "procurementMethod",c.contract_type AS "contractType",c.main_category_code AS "mainCategoryCode",c.description,c.signed_at AS "signedAt",c.value::float8,
+      p.published_at AS "publishedAt",p.awarded_at AS "awardedAt",p.estimated_value::float8 AS "estimatedValue",p.offer_count AS "offerCount",p.unique_bidder_count AS "uniqueBidderCount",p.lot_count AS "lotCount"
+    FROM contracts c LEFT JOIN processes p ON p.id=c.process_id ORDER BY c.id
   `);
   const signals = evaluateContracts(result.rows);
   await client.query('BEGIN');

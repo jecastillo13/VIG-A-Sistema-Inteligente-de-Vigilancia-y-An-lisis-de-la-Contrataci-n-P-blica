@@ -4,6 +4,16 @@
 
 La primera ingesta consulta el conjunto oficial **SECOP II — Contratos Electrónicos** (`jbjy-vk9h`) mediante la API Socrata de Datos Abiertos Colombia.
 
+## Métricas de procesos
+
+Después de importar los contratos en PostgreSQL, vincula publicación, adjudicación, precio base, valor adjudicado, lotes y oferentes mediante el `noticeUID` del enlace oficial:
+
+```bash
+pnpm secop:processes
+```
+
+El comando consulta el conjunto oficial [SECOP II — Procesos de Contratación](https://www.datos.gov.co/resource/p6dx-8zbt) y actualiza únicamente procesos asociados a contratos locales. En la muestra inicial enlazó 98 de 100 contratos; los dos restantes permanecen explícitamente sin métricas, sin completar valores por inferencia.
+
 ## Ejecutar una muestra
 
 ```bash
@@ -39,4 +49,3 @@ Las consultas públicas funcionan sin token para muestras pequeñas. Para cargas
 ## Datos conservados
 
 La normalización conserva identificadores contractuales, entidad, proveedor, modalidad, fechas, cuantía, categoría y enlace al proceso. No conserva documentos de identidad, cuentas bancarias, domicilios, supervisores ni representantes legales porque no son necesarios en esta fase.
-

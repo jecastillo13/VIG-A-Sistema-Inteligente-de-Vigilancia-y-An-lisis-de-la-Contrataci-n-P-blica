@@ -33,7 +33,8 @@ export function getSecopConfig() {
   return {
     baseUrl: process.env.SECOP_API_BASE_URL || 'https://www.datos.gov.co/resource',
     contractsDatasetId: process.env.SECOP_CONTRACTS_DATASET_ID || 'jbjy-vk9h',
+    processesDatasetId: process.env.SECOP_PROCESSES_DATASET_ID || 'p6dx-8zbt',
+    biddersDatasetId: process.env.SECOP_BIDDERS_DATASET_ID || 'hgi6-6wh3',
     appToken: process.env.SOCRATA_APP_TOKEN || '',
   };
 }
-

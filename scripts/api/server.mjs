@@ -83,14 +83,15 @@ async function contractsFromPostgres(options, contractId = '') {
         e.name AS entity_name,COALESCE(s.name,'') AS supplier_name,
         json_build_object('code',e.code,'name',e.name,'department',e.department,'city',e.city) AS entity,
         json_build_object('code',s.code,'name',s.name) AS supplier,
+        json_build_object('id',p.official_process_id,'publishedAt',p.published_at,'awardedAt',p.awarded_at,'estimatedValue',p.estimated_value::float8,'awardedValue',p.awarded_value::float8,'offerCount',p.offer_count,'uniqueBidderCount',p.unique_bidder_count,'lotCount',p.lot_count) AS process,
         LEAST(COALESCE(SUM(rs.score),0),100)::float8 AS "riskScore",LEAST(COALESCE(SUM(rs.score),0),100) AS risk_score,
         COALESCE(json_agg(json_build_object('code',rs.rule_code,'version',rs.rule_version,'score',rs.score::float8,'evidence',rs.evidence) ORDER BY rs.score DESC) FILTER (WHERE rs.id IS NOT NULL),'[]'::json) AS "riskSignals"
-      FROM contracts c JOIN entities e ON e.code=c.entity_code LEFT JOIN suppliers s ON s.code=c.supplier_code LEFT JOIN risk_signals rs ON rs.contract_id=c.id
+      FROM contracts c JOIN entities e ON e.code=c.entity_code LEFT JOIN suppliers s ON s.code=c.supplier_code LEFT JOIN processes p ON p.id=c.process_id LEFT JOIN risk_signals rs ON rs.contract_id=c.id
       WHERE ($1='' OR c.id=$1) AND ($2='' OR c.id ILIKE $3 OR e.name ILIKE $3 OR s.name ILIKE $3 OR c.description ILIKE $3)
         AND ($4='' OR e.name ILIKE $5) AND ($6='' OR s.name ILIKE $7) AND ($8='' OR c.procurement_method=$8)
         AND ($9='' OR c.signed_at >= $9::date) AND ($10='' OR c.signed_at < ($10::date + INTERVAL '1 day'))
         AND ($11=0 OR c.value >= $11) AND ($12=0 OR c.value <= $12)
-      GROUP BY c.id,e.code,s.code
+      GROUP BY c.id,e.code,s.code,p.id
     )
     SELECT *,COUNT(*) OVER()::int AS total_count FROM listed
     WHERE (NOT $13 OR risk_score >= 70)

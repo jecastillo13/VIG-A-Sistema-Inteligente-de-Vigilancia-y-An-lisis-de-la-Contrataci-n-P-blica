@@ -64,3 +64,28 @@ test('concentración de cierre exige cobertura de al menos diez meses', () => {
   assert.equal(yearEnd.length, 2);
   assert.equal(yearEnd.every((item) => item.evidence.coveredMonths === 12), true);
 });
+
+test('único oferente solo aplica a procesos competitivos', () => {
+  const direct = contract('C1', 10, 'P1', 'Contratación directa', { uniqueBidderCount: 1 });
+  const competitive = contract('C2', 10, 'P2', 'Licitación pública', { uniqueBidderCount: 1 });
+  const signals = evaluateContracts([direct, competitive]).filter((item) => item.ruleCode === 'SINGLE_BIDDER_COMPETITIVE');
+  assert.deepEqual(signals.map((item) => item.contractId), ['C2']);
+});
+
+test('detecta una ventana competitiva inferior a diez días', () => {
+  const contracts = [contract('C1', 10, 'P1', 'Licitación pública', { publishedAt: '2025-05-01', awardedAt: '2025-05-05' })];
+  const signal = evaluateContracts(contracts).find((item) => item.ruleCode === 'SHORT_PUBLICATION_TO_AWARD');
+  assert.equal(signal.evidence.awardDays, 4);
+});
+
+test('detecta diferencia de valor y excluye procesos con varios lotes', () => {
+  const flagged = contract('C1', 150, 'P1', 'Licitación pública', { estimatedValue: 100, lotCount: 1 });
+  const multipleLots = contract('C2', 150, 'P2', 'Licitación pública', { estimatedValue: 100, lotCount: 2 });
+  const signals = evaluateContracts([flagged, multipleLots]).filter((item) => item.ruleCode === 'ESTIMATED_VALUE_GAP');
+  assert.deepEqual(signals.map((item) => item.contractId), ['C1']);
+});
+
+test('trata diferencias extremas de escala como calidad de datos y no riesgo', () => {
+  const contractWithBadScale = contract('C1', 100, 'P1', 'Licitación pública', { estimatedValue: 100000, lotCount: 1 });
+  assert.equal(evaluateContracts([contractWithBadScale]).some((item) => item.ruleCode === 'ESTIMATED_VALUE_GAP'), false);
+});

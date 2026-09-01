@@ -1,4 +1,4 @@
-export const RULE_VERSION = '1.1.0';
+export const RULE_VERSION = '1.2.0';
 
 export const RULES = {
   DIRECT_VALUE_OUTLIER: { weight: 30, minimumSample: 8 },
@@ -8,6 +8,9 @@ export const RULES = {
   SIMILAR_OBJECTS_NEARBY: { weight: 15, minimumSimilarity: 0.95, maximumDays: 15 },
   POSSIBLE_SPLITTING: { weight: 15, minimumSimilarity: 0.85, maximumDays: 30 },
   YEAR_END_CONCENTRATION: { weight: 10, minimumShare: 0.3, minimumMonths: 10 },
+  SINGLE_BIDDER_COMPETITIVE: { weight: 25 },
+  SHORT_PUBLICATION_TO_AWARD: { weight: 20, maximumDays: 10 },
+  ESTIMATED_VALUE_GAP: { weight: 20, minimumDifference: 0.25, maximumScaleRatio: 4 },
 };
 
 const STOP_WORDS = new Set(['para', 'como', 'con', 'del', 'las', 'los', 'una', 'por', 'que', 'sus', 'y', 'en', 'de', 'la', 'el', 'un', 'al']);
@@ -101,6 +104,7 @@ export function evaluateContracts(contracts) {
         keepBest(splittingMatches, right, left, score, dayDifference);
       }
     }
+
   }
 
   for (const contract of contracts) {
@@ -170,6 +174,34 @@ export function evaluateContracts(contracts) {
           limitation: 'Solo se activa cuando la muestra cubre al menos diez meses de la vigencia.',
         });
       }
+    }
+
+    const competitive = !/directa/i.test(contract.procurementMethod || '');
+    if (competitive && contract.uniqueBidderCount === 1) {
+      add(contract, 'SINGLE_BIDDER_COMPETITIVE', RULES.SINGLE_BIDDER_COMPETITIVE.weight, {
+        explanation: 'El proceso competitivo registra un único proveedor con respuesta.',
+        uniqueBidderCount: contract.uniqueBidderCount, offerCount: contract.offerCount,
+        limitation: 'El conteo publicado debe contrastarse con los documentos y lotes del proceso.',
+      });
+    }
+
+    if (competitive && contract.publishedAt && contract.awardedAt) {
+      const awardDays = daysBetween(contract.publishedAt, contract.awardedAt);
+      if (awardDays < RULES.SHORT_PUBLICATION_TO_AWARD.maximumDays) add(contract, 'SHORT_PUBLICATION_TO_AWARD', RULES.SHORT_PUBLICATION_TO_AWARD.weight, {
+        explanation: 'Transcurrieron menos de diez días calendario entre publicación y adjudicación del proceso competitivo.',
+        publishedAt: contract.publishedAt, awardedAt: contract.awardedAt, awardDays,
+        limitation: 'La modalidad y su cronograma legal deben revisarse antes de interpretar la señal.',
+      });
+    }
+
+    if (contract.estimatedValue > 0 && contract.lotCount <= 1) {
+      const difference = Math.abs(contract.value - contract.estimatedValue) / contract.estimatedValue;
+      const scaleRatio = Math.max(contract.value, contract.estimatedValue) / Math.min(contract.value, contract.estimatedValue);
+      if (difference >= RULES.ESTIMATED_VALUE_GAP.minimumDifference && scaleRatio <= RULES.ESTIMATED_VALUE_GAP.maximumScaleRatio) add(contract, 'ESTIMATED_VALUE_GAP', RULES.ESTIMATED_VALUE_GAP.weight, {
+        explanation: 'El valor del contrato difiere al menos 25 % del precio base del proceso sin múltiples lotes reportados.',
+        contractValue: contract.value, estimatedValue: contract.estimatedValue, difference, scaleRatio,
+        limitation: 'Adiciones, alcance y estructura del proceso pueden explicar la diferencia.',
+      });
     }
   }
   return signals;

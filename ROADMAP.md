@@ -98,7 +98,7 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 3 — Motor de indicadores v1
 
-**Estado:** En progreso; motor v1.1.0 activo con siete reglas explicables, 13 pruebas totales y evidencia visible en el dashboard
+**Estado:** Completada localmente; motor v1.2.0 con diez reglas explicables, métricas oficiales de procesos, 17 pruebas totales y evidencia visible en el dashboard
 
 **Duración estimada:** 3 semanas
 

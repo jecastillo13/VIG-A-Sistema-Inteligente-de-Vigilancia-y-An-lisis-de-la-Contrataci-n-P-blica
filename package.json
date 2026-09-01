@@ -17,6 +17,7 @@
     "check": "pnpm lint && pnpm test && pnpm build",
     "secop:ingest": "node scripts/secop/ingest-contracts.mjs",
     "secop:entities": "node scripts/secop/resolve-entities.mjs",
+    "secop:processes": "node scripts/secop/ingest-process-metrics.mjs",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "node scripts/database/migrate.mjs",
