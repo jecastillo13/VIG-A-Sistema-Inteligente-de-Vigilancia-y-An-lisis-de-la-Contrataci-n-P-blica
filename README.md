@@ -67,6 +67,8 @@ pnpm risk:calculate # recalcula señales y evidencia de riesgo
 pnpm document:download -- --document-id=708763166 # descarga controlada de un documento
 pnpm document:extract -- --document-id=708763166 # extrae texto PDF por página
 pnpm document:analyze -- --contract-id=CO1.PCCNTR.7257661 # clasifica evidencia con citas
+pnpm document:pilot # resume cobertura y revisión del piloto documental
+pnpm document:review -- --contract-id=CO1.PCCNTR.7257661 --category=need --decision=confirmed # registra revisión humana
 ```
 
 ## Primera ingesta SECOP II

@@ -1,8 +1,8 @@
-export const ANALYZER_VERSION = '1.0.0';
+export const ANALYZER_VERSION = '1.1.0';
 
 export const DOCUMENT_CATEGORIES = [
   { key: 'need', label: 'Necesidad', terms: ['definición de la necesidad', 'descripción de la necesidad', 'necesidad que la entidad pretende satisfacer', 'necesidad'] },
-  { key: 'justification', label: 'Justificación', terms: ['justificación', 'conveniencia y oportunidad', 'se requiere contratar', 'requiere contratar'] },
+  { key: 'justification', label: 'Justificación jurídica', terms: ['fundamentos jurídicos', 'fundamento jurídico', 'justificación', 'conveniencia y oportunidad', 'se requiere contratar', 'requiere contratar'] },
   { key: 'budget', label: 'Presupuesto', terms: ['presupuesto oficial', 'disponibilidad presupuestal', 'valor estimado', 'presupuesto', 'forma de pago'] },
   { key: 'market', label: 'Estudio de mercado', terms: ['estudio de mercado', 'análisis del sector', 'analisis del sector', 'cotizaciones', 'precios del mercado'] },
 ];

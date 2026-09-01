@@ -67,6 +67,8 @@ type DocumentFinding = {
   sourceUrl?: string | null;
   pageNumber?: number | null;
   excerpt?: string | null;
+  reviewDecision?: 'confirmed' | 'rejected' | null;
+  reviewNote?: string | null;
 };
 
 type DocumentExplanation = {
@@ -879,9 +881,13 @@ export default function Home() {
                                   {labels[finding.category]}
                                 </strong>
                                 <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-cyan-800">
-                                  {finding.status === 'found'
-                                    ? 'Encontrado'
-                                    : 'No encontrado'}
+                                  {finding.reviewDecision === 'confirmed'
+                                    ? 'Revisión confirmada'
+                                    : finding.reviewDecision === 'rejected'
+                                      ? 'Revisión rechazada'
+                                      : finding.status === 'found'
+                                        ? 'Pendiente de revisión'
+                                        : 'No encontrado'}
                                 </span>
                               </div>
                               {finding.status === 'found' ? (
@@ -898,6 +904,11 @@ export default function Home() {
                                     Documento {finding.documentId} · página{' '}
                                     {finding.pageNumber}
                                   </a>
+                                  {finding.reviewNote && (
+                                    <p className="mt-2 rounded-lg bg-white p-2 text-[11px] text-slate-600">
+                                      Nota de revisión: {finding.reviewNote}
+                                    </p>
+                                  )}
                                 </>
                               ) : (
                                 <p className="mt-2 leading-5 text-slate-600">
@@ -912,6 +923,8 @@ export default function Home() {
                         <p className="text-[10px] text-slate-500">
                           Analizador documental v
                           {selected.documentExplanation.analyzerVersion}
+                          {' · '}Los resultados pendientes aún no han sido
+                          confirmados por una persona.
                         </p>
                       </div>
                     ) : (

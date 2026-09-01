@@ -22,6 +22,8 @@
     "document:download": "node scripts/documents/download.mjs",
     "document:extract": "node scripts/documents/extract-text.mjs",
     "document:analyze": "node scripts/documents/analyze-contract.mjs",
+    "document:review": "node scripts/documents/review.mjs",
+    "document:pilot": "node scripts/documents/pilot-report.mjs",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "node scripts/database/migrate.mjs",

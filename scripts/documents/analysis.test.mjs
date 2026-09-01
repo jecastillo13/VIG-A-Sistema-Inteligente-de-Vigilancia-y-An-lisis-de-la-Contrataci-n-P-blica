@@ -22,6 +22,11 @@ test('prioriza el encabezado formal sobre menciones secundarias', () => {
   assert.equal(findings.find((finding) => finding.category === 'need').pageNumber, 1);
 });
 
+test('reconoce fundamentos jurídicos como justificación de la modalidad', () => {
+  const findings = analyzePages([{ id: 'doc-4', pages: [{ pageNumber: 6, text: '5. FUNDAMENTOS JURÍDICOS\nLa modalidad aplicable es contratación directa.' }] }]);
+  assert.equal(findings.find((finding) => finding.category === 'justification').pageNumber, 6);
+});
+
 test('limita el fragmento citado', () => {
   const text = `${'a'.repeat(300)} presupuesto oficial ${'b'.repeat(700)}`;
   assert.ok(excerptAround(text, 300, 19).length <= 600);

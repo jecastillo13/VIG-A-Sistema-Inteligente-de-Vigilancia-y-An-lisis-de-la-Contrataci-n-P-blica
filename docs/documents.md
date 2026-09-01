@@ -55,6 +55,24 @@ El analizador v1 es determinista: busca vocabulario explícito de necesidad, jus
 
 Esta clasificación no infiere hechos ausentes, no afirma cumplimiento o incumplimiento y no modifica el índice objetivo de riesgo. Los enlaces permiten contrastar cada fragmento con el archivo oficial.
 
+## Piloto y revisión humana
+
+El estado del piloto se consulta con:
+
+```bash
+pnpm document:pilot
+```
+
+La muestra inicial contiene cinco estudios previos y 20 resultados categorizados. La extracción encontró texto en todos y el analizador v1.1 localizó las cuatro categorías en los cinco contratos. Esto mide cobertura técnica, no exactitud: los 20 resultados comienzan como pendientes de revisión humana.
+
+Después de comparar una cita con el PDF oficial, un revisor puede registrar su decisión:
+
+```bash
+pnpm document:review -- --contract-id=CO1.PCCNTR.7257661 --category=need --decision=confirmed --note="La cita corresponde al encabezado y contenido de necesidad"
+```
+
+Las decisiones válidas son `confirmed` y `rejected`; las categorías son `need`, `justification`, `budget` y `market`. Volver a ejecutar el análisis de un contrato elimina sus revisiones anteriores, porque las citas pueden cambiar entre versiones y deben validarse nuevamente.
+
 ## Interfaz y limitaciones
 
 La ficha contractual muestra el total de documentos y los cinco más recientes, con enlace directo al archivo oficial. Que un contrato no tenga documentos inventariados significa que no se encontraron registros asociados en esta fuente y carga; no demuestra que el proceso carezca de documentos en otros módulos o fuentes.
