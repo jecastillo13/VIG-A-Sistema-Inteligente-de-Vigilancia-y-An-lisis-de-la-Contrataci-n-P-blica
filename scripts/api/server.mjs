@@ -1,6 +1,8 @@
 import http from 'node:http';
 import path from 'node:path';
+import * as Sentry from '@sentry/node';
 import pg from 'pg';
+import { sanitizeSentryEvent } from '../observability/sanitize.mjs';
 import { loadLocalEnv } from '../secop/config.mjs';
 import { readJson } from '../secop/storage.mjs';
 import { validateReview } from './reviews.mjs';
@@ -11,6 +13,30 @@ const appUrl = process.env.APP_URL || 'http://localhost:3000';
 const backend = process.env.DATA_BACKEND || 'json';
 const jsonPath = path.join(process.cwd(), 'data', 'runtime', 'contracts-2025-invias', 'contracts.json');
 const pool = backend === 'postgres' ? new pg.Pool({ connectionString: process.env.DATABASE_URL }) : null;
+const sentryDsn = process.env.SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development',
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: {
+        request: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+        response: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      },
+      httpBodies: [],
+      urlQueryParams: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      graphQL: { document: false, variables: false },
+    },
+    tracesSampleRate: 0,
+    beforeSend: sanitizeSentryEvent,
+    beforeBreadcrumb: () => null,
+  });
+}
 
 function respond(response, status, value) {
   response.writeHead(status, {
@@ -152,6 +178,7 @@ const server = http.createServer(async (request, response) => {
     return respond(response, 200, { data: result.rows, meta: { backend, count: result.rows.length, total: result.total, limit: options.limit, offset: options.offset, sort: options.sort, direction: options.direction.toLowerCase() } });
   } catch (error) {
     console.error(error);
+    if (sentryDsn) Sentry.captureException(error);
     return respond(response, 500, { error: 'No fue posible consultar los contratos.' });
   }
 });

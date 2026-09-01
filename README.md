@@ -89,6 +89,8 @@ pnpm dev:all
 
 La [documentación de base de datos y API](docs/database-and-api.md) explica el modo JSON inmediato y la posterior activación de PostgreSQL con Docker.
 
+El monitoreo técnico opcional con Sentry y sus controles de privacidad se explica en [observabilidad](docs/observability.md). Permanece desactivado hasta configurar los DSN en `.env.local`.
+
 ## Documentos oficiales
 
 El inventario documental se obtiene sin descargar masivamente los archivos. La ficha de cada contrato muestra los documentos oficiales más recientes y enlaza a la fuente SECOP. Para actualizarlo ejecuta:

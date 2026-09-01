@@ -36,6 +36,7 @@ Consulta también `docs/architecture.md`, `docs/database-and-api.md`, `docs/inge
 - `scripts/risk/`: motor de indicadores, cálculo y pruebas de reglas.
 - `scripts/documents/`: controles de descarga, extracción por página, clasificación y revisión humana.
 - `scripts/database/`: aplicación de migraciones e importación.
+- `scripts/observability/`: minimización de telemetría compartida por web y API.
 - `db/migrations/`: esquema PostgreSQL versionado. Añade una migración nueva; no edites retroactivamente una migración aplicada salvo corrección explícita solicitada.
 - `docs/`: arquitectura, operación y decisiones verificables.
 - `public/`: recursos estáticos mantenidos manualmente.
@@ -103,6 +104,7 @@ Los comandos adicionales y sus argumentos están documentados en `README.md` y `
 10. No incluyas `.env.local`, credenciales, documentos descargados ni datos generados en Git.
 11. Mantén compatibilidad con Windows y PowerShell; evita asumir comandos exclusivos de Unix en instrucciones de usuario.
 12. Preserva cambios ajenos o no relacionados que ya existan en el árbol de trabajo.
+13. La telemetría solo puede contener contexto técnico saneado; nunca añadas datos SECOP o texto documental a eventos.
 
 ## Flujo recomendado para cada tarea
 
