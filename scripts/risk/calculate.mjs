@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { loadLocalEnv } from '../secop/config.mjs';
-import { evaluateContracts, RULE_VERSION } from './engine.mjs';
+import { evaluateContracts, RULES, RULE_VERSION } from './engine.mjs';
 
 loadLocalEnv();
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL no está configurada.');
@@ -9,12 +9,12 @@ await client.connect();
 
 try {
   const result = await client.query(`
-    SELECT id,entity_code AS "entityCode",supplier_code AS "supplierCode",procurement_method AS "procurementMethod",contract_type AS "contractType",value::float8
+    SELECT id,entity_code AS "entityCode",supplier_code AS "supplierCode",procurement_method AS "procurementMethod",contract_type AS "contractType",main_category_code AS "mainCategoryCode",description,signed_at AS "signedAt",value::float8
     FROM contracts ORDER BY id
   `);
   const signals = evaluateContracts(result.rows);
   await client.query('BEGIN');
-  await client.query('DELETE FROM risk_signals WHERE rule_version=$1', [RULE_VERSION]);
+  await client.query('DELETE FROM risk_signals WHERE rule_code=ANY($1::text[])', [Object.keys(RULES)]);
   for (const signal of signals) {
     await client.query(`
       INSERT INTO risk_signals (contract_id,rule_code,rule_version,score,evidence)

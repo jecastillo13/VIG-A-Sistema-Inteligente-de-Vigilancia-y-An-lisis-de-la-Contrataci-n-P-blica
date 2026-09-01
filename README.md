@@ -14,7 +14,7 @@ La versión local contiene un dashboard conectado a 100 contratos reales de INV�
 - selección y explicación de señales de riesgo reproducibles;
 - interfaz adaptable a computador y móvil.
 
-El motor v1.0.0 calcula cuatro indicadores iniciales y conserva su evidencia y limitaciones. Los resultados orientan revisión y no afirman corrupción.
+El motor v1.1.0 calcula siete indicadores, conserva su evidencia y limitaciones, y suprime plantillas textuales repetitivas para reducir ruido. Los resultados orientan revisión y no afirman corrupción.
 
 Consulta la [hoja de ruta del proyecto](ROADMAP.md) para conocer las fases, entregables y criterios de aceptación del MVP.
 
@@ -81,7 +81,7 @@ La [documentación de base de datos y API](docs/database-and-api.md) explica el 
 
 ## Próximos pasos sugeridos
 
-1. Incorporar los datos necesarios para los seis indicadores restantes.
+1. Incorporar los datos necesarios para los tres indicadores restantes.
 2. Ampliar la muestra a las ocho entidades piloto.
 3. Validar umbrales con perfiles de contratación comparables.
 4. Incorporar documentos y explicaciones con trazabilidad a la fuente.

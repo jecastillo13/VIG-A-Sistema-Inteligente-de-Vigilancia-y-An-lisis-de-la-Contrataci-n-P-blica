@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { evaluateContracts, RULE_VERSION } from './engine.mjs';
 
-function contract(id, value, supplierCode = id, method = 'Contratación directa') {
-  return { id, value, supplierCode, procurementMethod: method, contractType: 'Servicios', entityCode: 'E1' };
+function contract(id, value, supplierCode = id, method = 'Contratación directa', overrides = {}) {
+  return { id, value, supplierCode, procurementMethod: method, contractType: 'Servicios', entityCode: 'E1', ...overrides };
 }
 
 test('detecta un valor directo inusual con evidencia reproducible', () => {
@@ -30,4 +30,37 @@ test('detecta recurrencia de proveedor en la misma entidad', () => {
 test('la concentración exige al menos dos contratos del proveedor', () => {
   const contracts = [contract('C1', 90, 'P1'), contract('C2', 10, 'P2')];
   assert.equal(evaluateContracts(contracts).some((item) => item.ruleCode === 'SUPPLIER_CONCENTRATION'), false);
+});
+
+test('detecta objetos muy similares firmados en fechas cercanas', () => {
+  const description = 'Realizar mantenimiento preventivo correctivo integral de la infraestructura vial urbana del municipio durante la vigencia';
+  const contracts = [
+    contract('C1', 10, 'P1', 'Licitación', { description, signedAt: '2025-03-01', mainCategoryCode: 'V1.1' }),
+    contract('C2', 10, 'P2', 'Licitación', { description, signedAt: '2025-03-10', mainCategoryCode: 'V1.1' }),
+  ];
+  const similar = evaluateContracts(contracts).filter((item) => item.ruleCode === 'SIMILAR_OBJECTS_NEARBY');
+  assert.equal(similar.length, 2);
+  assert.equal(similar[0].evidence.relatedContractId, 'C2');
+});
+
+test('suprime plantillas repetidas masivamente', () => {
+  const description = 'Prestar servicios profesionales especializados para apoyo administrativo técnico financiero jurídico institucional';
+  const contracts = Array.from({ length: 5 }, (_, index) => contract(`C${index}`, 10, `P${index}`, 'Licitación', { description, signedAt: `2025-03-${String(index + 1).padStart(2, '0')}` }));
+  assert.equal(evaluateContracts(contracts).some((item) => item.ruleCode === 'SIMILAR_OBJECTS_NEARBY'), false);
+});
+
+test('posible fragmentación exige mismo proveedor, categoría y contratación directa', () => {
+  const description = 'Prestar servicios especializados para mantenimiento integral preventivo correctivo de equipos tecnológicos institucionales';
+  const contracts = [
+    contract('C1', 10, 'P1', 'Contratación directa', { description, signedAt: '2025-04-01', mainCategoryCode: 'V1.2' }),
+    contract('C2', 10, 'P1', 'Contratación directa', { description, signedAt: '2025-04-10', mainCategoryCode: 'V1.2' }),
+  ];
+  assert.equal(evaluateContracts(contracts).filter((item) => item.ruleCode === 'POSSIBLE_SPLITTING').length, 2);
+});
+
+test('concentración de cierre exige cobertura de al menos diez meses', () => {
+  const contracts = Array.from({ length: 12 }, (_, month) => contract(`C${month + 1}`, month === 11 ? 100 : 10, `P${month}`, 'Licitación', { signedAt: `2025-${String(month + 1).padStart(2, '0')}-15` }));
+  const yearEnd = evaluateContracts(contracts).filter((item) => item.ruleCode === 'YEAR_END_CONCENTRATION');
+  assert.equal(yearEnd.length, 2);
+  assert.equal(yearEnd.every((item) => item.evidence.coveredMonths === 12), true);
 });
