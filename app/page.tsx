@@ -36,6 +36,7 @@ type ContractRow = {
   process: ProcessMetrics | null;
   documentCount: number;
   documents: ContractDocument[];
+  extractedDocuments: ExtractedDocument[];
 };
 
 type ContractDocument = {
@@ -45,6 +46,16 @@ type ContractDocument = {
   sizeBytes?: number | null;
   uploadedAt?: string | null;
   sourceUrl: string;
+};
+
+type ExtractedDocument = {
+  id: string;
+  fileName: string;
+  sourceUrl: string;
+  pageCount: number;
+  textCharCount: number;
+  extractedAt?: string | null;
+  pages: { pageNumber: number; excerpt: string }[];
 };
 
 type ProcessMetrics = {
@@ -77,6 +88,7 @@ type ApiContract = {
   process?: ProcessMetrics;
   documentCount?: number;
   documents?: ContractDocument[];
+  extractedDocuments?: ExtractedDocument[];
   entity?: { name?: string; department?: string; city?: string };
   supplier?: { name?: string };
   source?: { processUrl?: string };
@@ -245,6 +257,9 @@ export default function Home() {
           process: contract.process || null,
           documentCount: Number(contract.documentCount || 0),
           documents: Array.isArray(contract.documents) ? contract.documents : [],
+          extractedDocuments: Array.isArray(contract.extractedDocuments)
+            ? contract.extractedDocuments
+            : [],
         }));
         setContracts(mapped);
         setSelected(mapped[0] || null);
@@ -819,6 +834,51 @@ export default function Home() {
                       </p>
                     )}
                   </section>
+                  {selected.extractedDocuments.length > 0 && (
+                    <section className="mt-5 border-t border-slate-200 pt-4">
+                      <h3 className="text-sm font-bold">Texto extraído con citas</h3>
+                      <p className="mt-1 text-[11px] leading-4 text-slate-500">
+                        Fragmentos literales para verificar en el documento; no son
+                        una conclusión ni modifican el puntaje de riesgo.
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        {selected.extractedDocuments.map((document) => (
+                          <article
+                            key={document.id}
+                            className="rounded-xl border border-violet-200 bg-violet-50 p-3 text-xs"
+                          >
+                            <a
+                              href={document.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-violet-900 underline underline-offset-2"
+                            >
+                              {document.fileName}
+                            </a>
+                            <p className="mt-1 text-[11px] text-violet-700">
+                              {document.pageCount} página(s) ·{' '}
+                              {document.textCharCount.toLocaleString('es-CO')} caracteres
+                            </p>
+                            <div className="mt-2 space-y-2">
+                              {document.pages.map((page) => (
+                                <blockquote
+                                  key={page.pageNumber}
+                                  className="rounded-lg border-l-4 border-violet-400 bg-white p-2 leading-5 text-slate-700"
+                                >
+                                  <strong className="block text-[10px] uppercase tracking-wide text-violet-700">
+                                    Documento {document.id} · página {page.pageNumber}
+                                  </strong>
+                                  <span className="line-clamp-6 whitespace-pre-line">
+                                    {page.excerpt}
+                                  </span>
+                                </blockquote>
+                              ))}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                   {selected.riskSignals.length > 0 ? (
                     <section className="mt-5">
                       <div className="mb-2 flex items-center justify-between">

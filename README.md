@@ -65,6 +65,7 @@ pnpm secop:processes # vincula métricas oficiales de procesos SECOP II
 pnpm secop:documents # inventaría metadatos de documentos oficiales
 pnpm risk:calculate # recalcula señales y evidencia de riesgo
 pnpm document:download -- --document-id=708763166 # descarga controlada de un documento
+pnpm document:extract -- --document-id=708763166 # extrae texto PDF por página
 ```
 
 ## Primera ingesta SECOP II
