@@ -25,7 +25,7 @@ SECOP II / Datos Abiertos
 - Gestor de paquetes: pnpm 11; Node.js 22.13 o superior.
 - Módulos: ESM (`"type": "module"`).
 
-Consulta también `docs/architecture.md`, `docs/database-and-api.md`, `docs/ingestion.md`, `docs/documents.md` y `ROADMAP.md`.
+Consulta también `docs/architecture.md`, `docs/database-and-api.md`, `docs/ingestion.md`, `docs/documents.md`, `docs/troubleshooting.md` y `ROADMAP.md`.
 
 ## Carpetas y archivos importantes
 
@@ -72,6 +72,7 @@ pnpm lint             # análisis estático
 pnpm test             # pruebas Node
 pnpm build            # compilación de producción
 pnpm check            # lint + test + build; verificación integral
+pnpm app:doctor           # diagnóstico de solo lectura de servicios y datos
 pnpm db:up            # inicia PostgreSQL
 pnpm db:migrate       # aplica migraciones
 pnpm db:import        # importa la carga local normalizada
@@ -109,6 +110,7 @@ Los comandos adicionales y sus argumentos están documentados en `README.md` y `
 ## Flujo recomendado para cada tarea
 
 1. Lee el archivo o componente indicado y sus pruebas cercanas.
+   - Ante errores de arranque, Docker, API o base de datos, ejecuta primero `pnpm app:doctor` y consulta `docs/troubleshooting.md`; no redescubras incidencias ya documentadas.
 2. Resume el problema concreto y el resultado esperado.
 3. Cambia únicamente lo necesario; evita refactorizaciones adyacentes no solicitadas.
 4. Ejecuta la verificación proporcional al riesgo.

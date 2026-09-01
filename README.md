@@ -59,6 +59,7 @@ pnpm build    # genera una compilación de producción
 pnpm lint     # revisa el código
 pnpm format   # aplica el formato del proyecto
 pnpm check    # ejecuta revisión y compilación
+pnpm app:doctor   # diagnostica web, API, Docker y PostgreSQL sin modificar datos
 pnpm test     # ejecuta las pruebas automatizadas
 pnpm db:up    # inicia PostgreSQL local
 pnpm secop:processes # vincula métricas oficiales de procesos SECOP II
@@ -90,6 +91,8 @@ pnpm dev:all
 La [documentación de base de datos y API](docs/database-and-api.md) explica el modo JSON inmediato y la posterior activación de PostgreSQL con Docker.
 
 El monitoreo técnico opcional con Sentry y sus controles de privacidad se explica en [observabilidad](docs/observability.md). Permanece desactivado hasta configurar los DSN en `.env.local`.
+
+Si algo deja de funcionar, ejecuta `pnpm app:doctor` y consulta la [guía de solución de problemas](docs/troubleshooting.md) antes de repetir ingestas o reinstalar herramientas.
 
 ## Documentos oficiales
 
