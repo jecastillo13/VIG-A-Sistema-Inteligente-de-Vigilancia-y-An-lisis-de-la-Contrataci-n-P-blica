@@ -518,13 +518,45 @@ export default function Home() {
           },
         };
       };
-      setContracts((current) => current.map(update));
-      setSelected((current) => (current ? update(current) : current));
-      setNotice(
-        decision === 'confirmed'
-          ? 'Cita confirmada por revisión humana.'
-          : 'Cita marcada como rechazada para recalibración.',
+      const updatedContracts = contracts.map(update);
+      const updatedSelected = update(selected);
+      const contractCompleted = !documentMatchesReviewFilter(
+        updatedSelected,
+        'pending',
       );
+      let nextPending: ContractRow | undefined;
+      if (contractCompleted && documentFilter === 'pending') {
+        const orderedIds = filtered.map((contract) => contract.id);
+        const currentIndex = orderedIds.indexOf(selected.id);
+        const nextIds = [
+          ...orderedIds.slice(currentIndex + 1),
+          ...orderedIds.slice(0, currentIndex),
+        ];
+        nextPending = nextIds
+          .map((id) => updatedContracts.find((contract) => contract.id === id))
+          .find(
+            (contract): contract is ContractRow =>
+              Boolean(
+                contract &&
+                  documentMatchesReviewFilter(contract, 'pending'),
+              ),
+          );
+      }
+      setContracts(updatedContracts);
+      setSelected(nextPending || updatedSelected);
+      if (nextPending) {
+        setNotice(
+          `Contrato completado. Continuamos con el siguiente pendiente: ${nextPending.id}.`,
+        );
+      } else if (contractCompleted && documentFilter === 'pending') {
+        setNotice('Revisión del piloto completada: no quedan citas pendientes.');
+      } else {
+        setNotice(
+          decision === 'confirmed'
+            ? 'Cita confirmada por revisión humana.'
+            : 'Cita marcada como rechazada para recalibración.',
+        );
+      }
     } catch {
       setNotice('No fue posible guardar la revisión humana.');
     } finally {
