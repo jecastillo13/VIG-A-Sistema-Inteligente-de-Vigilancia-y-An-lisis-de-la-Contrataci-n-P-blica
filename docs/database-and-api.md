@@ -47,18 +47,29 @@ Devuelve el estado y el backend activo.
 Parámetros:
 
 - `search`: contrato, entidad, proveedor u objeto.
+- `entity`: nombre de la entidad.
+- `supplier`: nombre del proveedor.
+- `method`: modalidad exacta de contratación.
+- `dateFrom` y `dateTo`: intervalo de firma en formato `AAAA-MM-DD`.
+- `minValue` y `maxValue`: intervalo de valor contractual.
 - `limit`: entre 1 y 500.
 - `offset`: desplazamiento para paginación.
-- `priority=true`: se utilizará cuando existan puntajes.
+- `priority=true`: contratos con puntaje acumulado igual o superior a 70.
+- `sort`: `signedAt`, `value`, `riskScore`, `entity` o `supplier`.
+- `direction`: `asc` o `desc`.
 
 Ejemplo:
 
 ```text
-http://localhost:4000/contracts?search=obra&limit=25
+http://localhost:4000/contracts?method=Contratación%20directa&sort=value&direction=desc&limit=25
 ```
+
+### `GET /contracts/:id`
+
+Devuelve un contrato individual con su entidad, proveedor, proceso, fuente SECOP y puntaje acumulado.
 
 ## Esquema inicial
 
-La migración crea `entities`, `suppliers`, `contracts`, `data_loads` y `risk_signals`, con llaves foráneas e índices para fecha, entidad, proveedor, valor y modalidad.
+Las migraciones crean `entities`, `suppliers`, `processes`, `contracts`, `data_loads` y `risk_signals`, con llaves foráneas e índices para fecha, entidad, proveedor, proceso, valor y modalidad.
 
 La API no expone documentos de identidad, información bancaria, domicilios ni nombres de responsables contractuales.

@@ -28,6 +28,13 @@ try {
         ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name,is_group=EXCLUDED.is_group,is_sme=EXCLUDED.is_sme,updated_at=NOW()
       `, [contract.supplier.code, contract.supplier.name || 'Sin nombre', contract.supplier.isGroup, contract.supplier.isSme]);
     }
+    if (contract.processId) {
+      await client.query(`
+        INSERT INTO processes (id, reference, entity_code, description, procurement_method, source_url)
+        VALUES ($1,$2,$3,$4,$5,$6)
+        ON CONFLICT (id) DO UPDATE SET reference=EXCLUDED.reference,entity_code=EXCLUDED.entity_code,description=EXCLUDED.description,procurement_method=EXCLUDED.procurement_method,source_url=EXCLUDED.source_url,updated_at=NOW()
+      `, [contract.processId, contract.reference, contract.entity.code, contract.description, contract.procurementMethod, contract.source.processUrl]);
+    }
     await client.query(`
       INSERT INTO contracts (id,process_id,reference,status,description,contract_type,procurement_method,procurement_method_justification,signed_at,starts_at,ends_at,value,added_days,main_category_code,entity_code,supplier_code,source_dataset_id,source_process_url,source_updated_at)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
@@ -43,4 +50,3 @@ try {
 } finally {
   await client.end();
 }
-
