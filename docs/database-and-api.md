@@ -68,6 +68,12 @@ http://localhost:4000/contracts?method=Contratación%20directa&sort=value&direct
 
 Devuelve un contrato individual con su entidad, proveedor, proceso, fuente SECOP y puntaje acumulado.
 
+El objeto `process` incluye, cuando existe vinculación oficial, el identificador del proceso, fechas de publicación y adjudicación, precio base, valor adjudicado, oferentes y lotes. `riskSignals` contiene código, versión, aporte, explicación y limitación de cada regla.
+
+## Exportación CSV
+
+El botón **Generar informe** exporta únicamente los resultados que cumplen los filtros visibles. Incluye contrato, entidad, proveedor, valor, modalidad, puntaje, reglas, explicaciones, proceso oficial y enlace SECOP.
+
 ## Esquema inicial
 
 Las migraciones crean `entities`, `suppliers`, `processes`, `contracts`, `data_loads` y `risk_signals`, con llaves foráneas e índices para fecha, entidad, proveedor, proceso, valor y modalidad.

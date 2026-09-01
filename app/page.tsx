@@ -7,7 +7,6 @@ import {
   ChevronDown,
   CircleHelp,
   FileSearch,
-  Filter,
   LayoutDashboard,
   Download,
   Menu,
@@ -34,6 +33,18 @@ type ContractRow = {
   sourceUrl: string | null;
   description: string;
   riskSignals: RiskSignal[];
+  process: ProcessMetrics | null;
+};
+
+type ProcessMetrics = {
+  id?: string | null;
+  publishedAt?: string | null;
+  awardedAt?: string | null;
+  estimatedValue?: number | null;
+  awardedValue?: number | null;
+  offerCount?: number | null;
+  uniqueBidderCount?: number | null;
+  lotCount?: number | null;
 };
 
 type RiskSignal = {
@@ -52,12 +63,27 @@ type ApiContract = {
   sourceUrl?: string;
   description?: string;
   riskSignals?: RiskSignal[];
+  process?: ProcessMetrics;
   entity?: { name?: string; department?: string; city?: string };
   supplier?: { name?: string };
   source?: { processUrl?: string };
 };
 
 type ApiResponse = { data: ApiContract[]; meta?: { backend?: string } };
+
+const money = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+function displayDate(value?: string | null) {
+  return value
+    ? new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(
+        new Date(value),
+      )
+    : 'No disponible';
+}
 
 function RiskBadge({ value }: { value: number | null }) {
   if (value === null)
@@ -87,7 +113,7 @@ export default function Home() {
   const [selected, setSelected] = useState<ContractRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(true);
   const [navOpen, setNavOpen] = useState(false);
-  const [priorityOnly, setPriorityOnly] = useState(false);
+  const [riskFilter, setRiskFilter] = useState('all');
   const [method, setMethod] = useState('');
   const [sort, setSort] = useState('risk-desc');
   const [page, setPage] = useState(1);
@@ -105,7 +131,10 @@ export default function Home() {
           return (
             matchesQuery &&
             (!method || c.mode === method) &&
-            (!priorityOnly || (c.risk ?? 0) >= 70)
+            (riskFilter === 'all' ||
+              (riskFilter === 'signaled' && c.risk !== null) ||
+              (riskFilter === 'high' && (c.risk ?? 0) >= 50) ||
+              (riskFilter === 'priority' && (c.risk ?? 0) >= 70))
           );
         })
         .sort((a, b) => {
@@ -116,7 +145,7 @@ export default function Home() {
             return a.entity.localeCompare(b.entity, 'es');
           return Date.parse(b.rawDate) - Date.parse(a.rawDate);
         }),
-    [contracts, method, priorityOnly, query, sort],
+    [contracts, method, query, riskFilter, sort],
   );
 
   const pageSize = 25;
@@ -193,6 +222,7 @@ export default function Home() {
           riskSignals: Array.isArray(contract.riskSignals)
             ? contract.riskSignals
             : [],
+          process: contract.process || null,
         }));
         setContracts(mapped);
         setSelected(mapped[0] || null);
@@ -207,7 +237,8 @@ export default function Home() {
   }, []);
 
   function downloadReport() {
-    const header = 'Contrato,Entidad,Proveedor,Valor,Modalidad,Riesgo';
+    const header =
+      'Contrato,Entidad,Proveedor,Valor,Modalidad,Riesgo,Reglas,Evidencia,Proceso oficial,Fuente SECOP';
     const rows = filtered.map((contract) =>
       [
         contract.id,
@@ -215,7 +246,13 @@ export default function Home() {
         contract.supplier,
         contract.value,
         contract.mode,
-        contract.risk,
+        contract.risk ?? 0,
+        contract.riskSignals.map((signal) => signal.code).join(' | '),
+        contract.riskSignals
+          .map((signal) => signal.evidence?.explanation || '')
+          .join(' | '),
+        contract.process?.id || '',
+        contract.sourceUrl || '',
       ]
         .map((value) => `"${String(value).replaceAll('"', '""')}"`)
         .join(','),
@@ -473,20 +510,9 @@ export default function Home() {
                         aria-label="Buscar contrato"
                       />
                     </label>
-                    <button
-                      onClick={() => {
-                        setPriorityOnly(!priorityOnly);
-                        setPage(1);
-                      }}
-                      aria-pressed={priorityOnly}
-                      className={`rounded-xl border p-2.5 ${priorityOnly ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200'}`}
-                      aria-label="Mostrar solo contratos prioritarios"
-                    >
-                      <Filter size={17} />
-                    </button>
                   </div>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   <label className="text-xs font-semibold text-slate-600">
                     Modalidad
                     <select
@@ -503,6 +529,22 @@ export default function Home() {
                           {item}
                         </option>
                       ))}
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold text-slate-600">
+                    Nivel de riesgo
+                    <select
+                      value={riskFilter}
+                      onChange={(event) => {
+                        setRiskFilter(event.target.value);
+                        setPage(1);
+                      }}
+                      className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal text-slate-800"
+                    >
+                      <option value="all">Todos</option>
+                      <option value="signaled">Con señales</option>
+                      <option value="high">Alto (50–69)</option>
+                      <option value="priority">Prioritario (70–100)</option>
                     </select>
                   </label>
                   <label className="text-xs font-semibold text-slate-600">
@@ -589,8 +631,7 @@ export default function Home() {
                             No encontramos contratos
                           </strong>
                           <span className="text-xs">
-                            Prueba otra búsqueda o desactiva el filtro
-                            prioritario.
+                            Prueba otra búsqueda o ajusta el nivel de riesgo.
                           </span>
                         </td>
                       </tr>
@@ -671,6 +712,49 @@ export default function Home() {
                       <dd className="font-semibold">{selected.value}</dd>
                     </div>
                   </dl>
+                  <section className="mt-5 border-t border-slate-200 pt-4">
+                    <h3 className="text-sm font-bold">Métricas del proceso</h3>
+                    {selected.process?.id ? (
+                      <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <dt className="text-slate-500">Proceso oficial</dt>
+                          <dd className="font-semibold">{selected.process.id}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Oferentes únicos</dt>
+                          <dd className="font-semibold">
+                            {selected.process.uniqueBidderCount ?? 'No disponible'}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Publicación</dt>
+                          <dd className="font-semibold">
+                            {displayDate(selected.process.publishedAt)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-slate-500">Adjudicación</dt>
+                          <dd className="font-semibold">
+                            {displayDate(selected.process.awardedAt)}
+                          </dd>
+                        </div>
+                        <div className="col-span-2">
+                          <dt className="text-slate-500">Precio base</dt>
+                          <dd className="font-semibold">
+                            {selected.process.estimatedValue != null
+                              ? money.format(selected.process.estimatedValue)
+                              : 'No disponible'}
+                          </dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <p className="mt-2 rounded-xl bg-slate-100 p-3 text-xs leading-5 text-slate-600">
+                        No fue posible vincular este contrato con una fila del
+                        conjunto oficial de procesos. No se completan métricas
+                        por inferencia.
+                      </p>
+                    )}
+                  </section>
                   {selected.riskSignals.length > 0 ? (
                     <section className="mt-5">
                       <div className="mb-2 flex items-center justify-between">

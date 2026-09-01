@@ -134,6 +134,8 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 4 — Dashboard conectado
 
+**Estado:** Completada localmente; ranking, filtros por nivel, paginación, métricas de proceso, evidencia por regla y CSV trazable validados en escritorio y móvil
+
 **Duración estimada:** 2 semanas
 
 ### Entregables
