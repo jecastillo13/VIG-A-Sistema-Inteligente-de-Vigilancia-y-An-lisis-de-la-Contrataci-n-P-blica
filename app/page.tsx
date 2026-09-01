@@ -174,6 +174,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [backend, setBackend] = useState('');
+  const [reviewingCategory, setReviewingCategory] = useState<string | null>(null);
   const filtered = useMemo(
     () =>
       contracts
@@ -327,6 +328,52 @@ export default function Home() {
     link.click();
     URL.revokeObjectURL(url);
     setNotice('Informe descargado con los contratos visibles.');
+  }
+
+  async function reviewCitation(
+    category: DocumentFinding['category'],
+    decision: 'confirmed' | 'rejected',
+  ) {
+    if (!selected?.documentExplanation) return;
+    setReviewingCategory(category);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(
+        `${apiUrl}/contracts/${encodeURIComponent(selected.id)}/document-reviews`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category, decision }),
+        },
+      );
+      if (!response.ok) throw new Error('No fue posible guardar la revisión.');
+      const update = (contract: ContractRow): ContractRow => {
+        if (contract.id !== selected.id || !contract.documentExplanation)
+          return contract;
+        return {
+          ...contract,
+          documentExplanation: {
+            ...contract.documentExplanation,
+            categories: contract.documentExplanation.categories.map((finding) =>
+              finding.category === category
+                ? { ...finding, reviewDecision: decision }
+                : finding,
+            ),
+          },
+        };
+      };
+      setContracts((current) => current.map(update));
+      setSelected((current) => (current ? update(current) : current));
+      setNotice(
+        decision === 'confirmed'
+          ? 'Cita confirmada por revisión humana.'
+          : 'Cita marcada como rechazada para recalibración.',
+      );
+    } catch {
+      setNotice('No fue posible guardar la revisión humana.');
+    } finally {
+      setReviewingCategory(null);
+    }
   }
 
   return (
@@ -867,7 +914,7 @@ export default function Home() {
                         {selected.documentExplanation.categories.map((finding) => {
                           const labels = {
                             need: 'Necesidad',
-                            justification: 'Justificación',
+                            justification: 'Justificación jurídica',
                             budget: 'Presupuesto',
                             market: 'Estudio de mercado',
                           };
@@ -917,6 +964,28 @@ export default function Home() {
                                   información no exista en SECOP.
                                 </p>
                               )}
+                              <div className="mt-3 flex gap-2 border-t border-cyan-200 pt-2">
+                                <button
+                                  type="button"
+                                  disabled={reviewingCategory === finding.category}
+                                  onClick={() =>
+                                    reviewCitation(finding.category, 'confirmed')
+                                  }
+                                  className="rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                                >
+                                  Confirmar
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={reviewingCategory === finding.category}
+                                  onClick={() =>
+                                    reviewCitation(finding.category, 'rejected')
+                                  }
+                                  className="rounded-lg border border-rose-300 bg-white px-2.5 py-1.5 text-[11px] font-bold text-rose-700 disabled:opacity-50"
+                                >
+                                  Rechazar
+                                </button>
+                              </div>
                             </article>
                           );
                         })}

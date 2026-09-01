@@ -3,6 +3,7 @@ import path from 'node:path';
 import pg from 'pg';
 import { loadLocalEnv } from '../secop/config.mjs';
 import { readJson } from '../secop/storage.mjs';
+import { validateReview } from './reviews.mjs';
 
 loadLocalEnv();
 const port = Number(process.env.API_PORT || 4000);
@@ -15,10 +16,21 @@ function respond(response, status, value) {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': appUrl,
-    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   });
   response.end(JSON.stringify(value));
+}
+
+async function readBody(request, maximumBytes = 8_192) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maximumBytes) throw new Error('El cuerpo de la solicitud supera el límite permitido.');
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
 }
 
 const sortFields = {
@@ -114,6 +126,22 @@ const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
   try {
     if (url.pathname === '/health') return respond(response, 200, { status: 'ok', backend });
+    const reviewMatch = url.pathname.match(/^\/contracts\/([^/]+)\/document-reviews$/);
+    if (reviewMatch && request.method === 'POST') {
+      if (backend !== 'postgres') return respond(response, 409, { error: 'La revisión requiere PostgreSQL.' });
+      if (request.headers.origin && request.headers.origin !== appUrl) return respond(response, 403, { error: 'Origen no permitido.' });
+      const contractId = decodeURIComponent(reviewMatch[1]);
+      let review;
+      try {
+        review = validateReview(await readBody(request));
+      } catch (error) {
+        return respond(response, 400, { error: error.message });
+      }
+      const finding = await pool.query('SELECT 1 FROM document_findings WHERE contract_id=$1 AND category=$2', [contractId, review.category]);
+      if (!finding.rows[0]) return respond(response, 404, { error: 'No existe un hallazgo documental para revisar.' });
+      const saved = await pool.query(`INSERT INTO document_reviews(contract_id,category,decision,note) VALUES($1,$2,$3,$4) ON CONFLICT(contract_id,category) DO UPDATE SET decision=EXCLUDED.decision,note=EXCLUDED.note,reviewer='human',reviewed_at=NOW() RETURNING category,decision,note,reviewed_at AS "reviewedAt"`, [contractId, review.category, review.decision, review.note]);
+      return respond(response, 200, { data: saved.rows[0] });
+    }
     const detailMatch = url.pathname.match(/^\/contracts\/([^/]+)$/);
     if (url.pathname !== '/contracts' && !detailMatch) return respond(response, 404, { error: 'Ruta no encontrada' });
     const options = queryOptions(url);

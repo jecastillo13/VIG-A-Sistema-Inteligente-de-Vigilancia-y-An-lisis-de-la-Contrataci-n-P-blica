@@ -13,7 +13,7 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
-    "test": "node --test scripts/secop/client.test.mjs scripts/secop/normalize.test.mjs scripts/risk/engine.test.mjs scripts/documents/safety.test.mjs scripts/documents/text.test.mjs scripts/documents/analysis.test.mjs",
+    "test": "node --test scripts/secop/client.test.mjs scripts/secop/normalize.test.mjs scripts/risk/engine.test.mjs scripts/documents/safety.test.mjs scripts/documents/text.test.mjs scripts/documents/analysis.test.mjs scripts/api/reviews.test.mjs",
     "check": "pnpm lint && pnpm test && pnpm build",
     "secop:ingest": "node scripts/secop/ingest-contracts.mjs",
     "secop:entities": "node scripts/secop/resolve-entities.mjs",

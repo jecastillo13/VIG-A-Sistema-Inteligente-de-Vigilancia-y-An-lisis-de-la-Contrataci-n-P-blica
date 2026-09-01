@@ -73,6 +73,8 @@ pnpm document:review -- --contract-id=CO1.PCCNTR.7257661 --category=need --decis
 
 Las decisiones válidas son `confirmed` y `rejected`; las categorías son `need`, `justification`, `budget` y `market`. Volver a ejecutar el análisis de un contrato elimina sus revisiones anteriores, porque las citas pueden cambiar entre versiones y deben validarse nuevamente.
 
+La misma decisión puede registrarse desde los botones **Confirmar** y **Rechazar** de la ficha contractual. Confirmar significa que la cita corresponde a la categoría indicada; no significa aprobar el contrato ni descartar riesgos. Rechazar envía la coincidencia a recalibración.
+
 ## Interfaz y limitaciones
 
 La ficha contractual muestra el total de documentos y los cinco más recientes, con enlace directo al archivo oficial. Que un contrato no tenga documentos inventariados significa que no se encontraron registros asociados en esta fuente y carga; no demuestra que el proceso carezca de documentos en otros módulos o fuentes.
