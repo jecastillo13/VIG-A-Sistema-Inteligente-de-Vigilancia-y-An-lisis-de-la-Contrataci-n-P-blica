@@ -75,6 +75,8 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 2 — Modelo de datos y API
 
+**Estado:** API y dashboard conectados localmente; validación de PostgreSQL pendiente de instalar Docker Desktop
+
 **Duración estimada:** 2 semanas
 
 ### Entregables

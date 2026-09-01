@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vinext dev",
+    "dev:api": "node --watch scripts/api/server.mjs",
+    "dev:all": "concurrently -k -n WEB,API -c blue,green \"pnpm dev\" \"pnpm dev:api\"",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
@@ -15,6 +17,10 @@
     "check": "pnpm lint && pnpm test && pnpm build",
     "secop:ingest": "node scripts/secop/ingest-contracts.mjs",
     "secop:entities": "node scripts/secop/resolve-entities.mjs",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "node scripts/database/migrate.mjs",
+    "db:import": "node scripts/database/import-contracts.mjs",
     "format": "oxfmt"
   },
   "dependencies": {
@@ -27,6 +33,7 @@
     "embla-carousel-react": "8.5.2",
     "input-otp": "1.4.2",
     "lucide-react": "1.31.0",
+    "pg": "^8.23.0",
     "react": "19.2.6",
     "react-day-picker": "9.8.1",
     "react-dom": "19.2.6",
@@ -49,6 +56,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
+    "concurrently": "^10.0.5",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",

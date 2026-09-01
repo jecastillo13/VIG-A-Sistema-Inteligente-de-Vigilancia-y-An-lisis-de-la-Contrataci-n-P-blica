@@ -45,7 +45,8 @@ cp .env.example .env.local
 ## Comandos
 
 ```bash
-pnpm dev      # inicia el entorno local
+pnpm dev      # inicia solamente la interfaz
+pnpm dev:all  # inicia la interfaz y la API de contratos reales
 pnpm build    # genera una compilación de producción
 pnpm lint     # revisa el código
 pnpm format   # aplica el formato del proyecto
@@ -62,6 +63,14 @@ pnpm secop:ingest -- --year=2025 --entity=invias --limit=100
 ```
 
 Consulta la [documentación de ingesta](docs/ingestion.md) para conocer la reanudación, los archivos generados y las opciones disponibles.
+
+Para ver los contratos descargados en el dashboard, ejecuta:
+
+```bash
+pnpm dev:all
+```
+
+La [documentación de base de datos y API](docs/database-and-api.md) explica el modo JSON inmediato y la posterior activación de PostgreSQL con Docker.
 
 ## Próximos pasos sugeridos
 
