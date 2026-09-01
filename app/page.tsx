@@ -148,6 +148,20 @@ function documentReviewStatus(contract: ContractRow) {
   return 'pending';
 }
 
+function documentMatchesReviewFilter(contract: ContractRow, filter: string) {
+  const categories = contract.documentExplanation?.categories;
+  if (filter === 'all') return true;
+  if (filter === 'unanalyzed') return !categories?.length;
+  if (!categories?.length) return false;
+  if (filter === 'pending')
+    return categories.some((finding) => !finding.reviewDecision);
+  if (filter === 'rejected')
+    return categories.some((finding) => finding.reviewDecision === 'rejected');
+  if (filter === 'reviewed')
+    return categories.every((finding) => finding.reviewDecision === 'confirmed');
+  return true;
+}
+
 function RiskBadge({ value }: { value: number | null }) {
   if (value === null)
     return (
@@ -197,8 +211,7 @@ export default function Home() {
           return (
             matchesQuery &&
             (!method || c.mode === method) &&
-            (documentFilter === 'all' ||
-              documentReviewStatus(c) === documentFilter) &&
+            documentMatchesReviewFilter(c, documentFilter) &&
             (riskFilter === 'all' ||
               (riskFilter === 'signaled' && c.risk !== null) ||
               (riskFilter === 'high' && (c.risk ?? 0) >= 50) ||
@@ -255,8 +268,9 @@ export default function Home() {
   );
   const pendingDocumentCount = useMemo(
     () =>
-      contracts.filter((contract) => documentReviewStatus(contract) === 'pending')
-        .length,
+      contracts.filter((contract) =>
+        documentMatchesReviewFilter(contract, 'pending'),
+      ).length,
     [contracts],
   );
   const documentQuality = useMemo(() => {
@@ -371,7 +385,7 @@ export default function Home() {
     }
     const candidates = contracts.filter(
       (contract) =>
-        (status === 'all' || documentReviewStatus(contract) === status) &&
+        documentMatchesReviewFilter(contract, status) &&
         (resetOtherFilters || !method || contract.mode === method) &&
         (resetOtherFilters ||
           riskFilter === 'all' ||
@@ -920,7 +934,10 @@ export default function Home() {
                             </span>
                             {documentReviewStatus(c) !== 'unanalyzed' && (
                               <span className="mt-1 inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-800">
-                                {documentReviewStatus(c) === 'pending'
+                                {documentReviewStatus(c) === 'rejected' &&
+                                documentMatchesReviewFilter(c, 'pending')
+                                  ? 'Rechazos y pendientes'
+                                  : documentReviewStatus(c) === 'pending'
                                   ? 'Citas pendientes'
                                   : documentReviewStatus(c) === 'reviewed'
                                     ? 'Citas confirmadas'
@@ -1129,6 +1146,33 @@ export default function Home() {
                     </p>
                     {selected.documentExplanation ? (
                       <div className="mt-3 space-y-2">
+                        <div className="rounded-xl border border-slate-200 bg-white p-3">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                            <span>Avance de este contrato</span>
+                            <span>
+                              {
+                                selected.documentExplanation.categories.filter(
+                                  (finding) => finding.reviewDecision,
+                                ).length
+                              }{' '}
+                              de {selected.documentExplanation.categories.length}
+                            </span>
+                          </div>
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-cyan-700"
+                              style={{
+                                width: `${Math.round(
+                                  (selected.documentExplanation.categories.filter(
+                                    (finding) => finding.reviewDecision,
+                                  ).length /
+                                    selected.documentExplanation.categories.length) *
+                                    100,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
                         {selected.documentExplanation.categories.map((finding) => {
                           const labels = {
                             need: 'Necesidad',
