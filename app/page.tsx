@@ -148,9 +148,27 @@ function documentReviewStatus(contract: ContractRow) {
   return 'pending';
 }
 
+function documentEvidenceStatus(contract: ContractRow) {
+  if (contract.documentCount === 0) return 'no_documents';
+  if (!contract.documentExplanation) return 'not_analyzed';
+  if (
+    contract.documentExplanation.categories.some(
+      (finding) => finding.status === 'not_found',
+    )
+  )
+    return 'not_found';
+  return 'found';
+}
+
 function documentMatchesReviewFilter(contract: ContractRow, filter: string) {
   const categories = contract.documentExplanation?.categories;
   if (filter === 'all') return true;
+  if (filter === 'no_documents')
+    return documentEvidenceStatus(contract) === 'no_documents';
+  if (filter === 'not_analyzed')
+    return documentEvidenceStatus(contract) === 'not_analyzed';
+  if (filter === 'not_found')
+    return documentEvidenceStatus(contract) === 'not_found';
   if (filter === 'unanalyzed') return !categories?.length;
   if (!categories?.length) return false;
   if (filter === 'pending')
@@ -890,7 +908,9 @@ export default function Home() {
                       <option value="pending">Pendientes</option>
                       <option value="reviewed">Confirmados</option>
                       <option value="rejected">Con rechazos</option>
-                      <option value="unanalyzed">Sin analizar</option>
+                      <option value="not_found">Información no encontrada</option>
+                      <option value="not_analyzed">Documentos por analizar</option>
+                      <option value="no_documents">Sin documentos disponibles</option>
                     </select>
                   </label>
                   <label className="text-xs font-semibold text-slate-600">
@@ -964,18 +984,29 @@ export default function Home() {
                             <span className="mt-1 block text-xs text-slate-400">
                               Firmado: {c.updated}
                             </span>
-                            {documentReviewStatus(c) !== 'unanalyzed' && (
-                              <span className="mt-1 inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-800">
-                                {documentReviewStatus(c) === 'rejected' &&
-                                documentMatchesReviewFilter(c, 'pending')
-                                  ? 'Rechazos y pendientes'
-                                  : documentReviewStatus(c) === 'pending'
-                                  ? 'Citas pendientes'
-                                  : documentReviewStatus(c) === 'reviewed'
-                                    ? 'Citas confirmadas'
-                                    : 'Citas rechazadas'}
+                            <span className="mt-1 flex flex-wrap gap-1">
+                              <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                                {documentEvidenceStatus(c) === 'no_documents'
+                                  ? 'Sin documentos disponibles'
+                                  : documentEvidenceStatus(c) === 'not_analyzed'
+                                    ? 'Documentos por analizar'
+                                    : documentEvidenceStatus(c) === 'not_found'
+                                      ? 'Información no encontrada'
+                                      : 'Evidencia localizada'}
                               </span>
-                            )}
+                              {documentReviewStatus(c) !== 'unanalyzed' && (
+                                <span className="inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-800">
+                                  {documentReviewStatus(c) === 'rejected' &&
+                                  documentMatchesReviewFilter(c, 'pending')
+                                    ? 'Rechazos y pendientes'
+                                    : documentReviewStatus(c) === 'pending'
+                                      ? 'Citas pendientes'
+                                      : documentReviewStatus(c) === 'reviewed'
+                                        ? 'Citas confirmadas'
+                                        : 'Citas rechazadas'}
+                                </span>
+                              )}
+                            </span>
                           </button>
                         </td>
                         <td className="px-4 py-4">
@@ -1313,8 +1344,9 @@ export default function Home() {
                       </div>
                     ) : (
                       <p className="mt-3 rounded-xl bg-slate-100 p-3 text-xs leading-5 text-slate-600">
-                        Este contrato todavía no ha sido analizado. Este estado es
-                        distinto de “información no encontrada”.
+                        {selected.documentCount === 0
+                          ? 'No hay documentos disponibles en el inventario consultado. Esto no significa que la información contractual no exista en otra fuente.'
+                          : 'Hay documentos inventariados, pero este contrato todavía no ha sido analizado. Este estado es distinto de “información no encontrada” después de analizar el texto.'}
                       </p>
                     )}
                   </section>
