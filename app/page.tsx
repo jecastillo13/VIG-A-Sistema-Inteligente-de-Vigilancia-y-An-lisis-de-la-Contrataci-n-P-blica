@@ -296,6 +296,22 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  function updateSearch(value: string) {
+    setQuery(value);
+    setPage(1);
+    const normalized = value.trim().toLocaleLowerCase('es');
+    if (!normalized) return;
+    const matches = contracts.filter((contract) =>
+      `${contract.id} ${contract.entity} ${contract.supplier}`
+        .toLocaleLowerCase('es')
+        .includes(normalized),
+    );
+    if (matches.length === 1) {
+      setSelected(matches[0]);
+      setDetailOpen(true);
+    }
+  }
+
   function downloadReport() {
     const header =
       'Contrato,Entidad,Proveedor,Valor,Modalidad,Riesgo,Reglas,Evidencia,Proceso oficial,Documentos,Fuente SECOP';
@@ -608,10 +624,7 @@ export default function Home() {
                       <Search size={16} className="text-slate-400" />
                       <input
                         value={query}
-                        onChange={(e) => {
-                          setQuery(e.target.value);
-                          setPage(1);
-                        }}
+                        onChange={(e) => updateSearch(e.target.value)}
                         className="w-36 outline-none"
                         placeholder="Buscar contrato"
                         aria-label="Buscar contrato"
