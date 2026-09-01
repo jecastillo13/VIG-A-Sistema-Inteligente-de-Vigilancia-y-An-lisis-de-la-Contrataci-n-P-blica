@@ -28,6 +28,8 @@ pnpm db:import
 
 Cambia `DATA_BACKEND=json` por `DATA_BACKEND=postgres` en `.env.local` y reinicia `pnpm dev:all`.
 
+Esta configuración se validó localmente con PostgreSQL 16 y una carga de 100 contratos de INVÍAS correspondientes a 2025.
+
 Para detener PostgreSQL:
 
 ```bash
@@ -60,4 +62,3 @@ http://localhost:4000/contracts?search=obra&limit=25
 La migración crea `entities`, `suppliers`, `contracts`, `data_loads` y `risk_signals`, con llaves foráneas e índices para fecha, entidad, proveedor, valor y modalidad.
 
 La API no expone documentos de identidad, información bancaria, domicilios ni nombres de responsables contractuales.
-

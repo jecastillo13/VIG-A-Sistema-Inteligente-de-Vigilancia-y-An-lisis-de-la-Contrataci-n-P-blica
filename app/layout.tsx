@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'VIGÍA — Radar SECOP',
   description: 'Plataforma de análisis y alertas de riesgo en contratación pública colombiana.',
+  icons: {
+    icon: '/favicon.svg',
+  },
   openGraph: {
     title: 'VIGÍA — Radar SECOP',
     description: 'Análisis explicable de riesgo contractual.',

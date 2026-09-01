@@ -75,7 +75,7 @@ El MVP **no determina corrupción**. Cada alerta debe mostrar su fuente, regla, 
 
 ## Fase 2 — Modelo de datos y API
 
-**Estado:** API y dashboard conectados localmente; validación de PostgreSQL pendiente de instalar Docker Desktop
+**Estado:** PostgreSQL validado localmente; API y dashboard conectados con 100 contratos reales de SECOP II
 
 **Duración estimada:** 2 semanas
 
